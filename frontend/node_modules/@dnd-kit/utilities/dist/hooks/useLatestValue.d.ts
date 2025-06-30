@@ -1,0 +1,2 @@
+/// <reference types="react" />
+export declare function useLatestValue<T extends any>(value: T, dependencies?: T[]): import("react").MutableRefObject<T>;
