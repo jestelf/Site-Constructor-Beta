@@ -69,7 +69,7 @@ export DATABASE_URL=postgresql://user:pass@localhost/dbname
 
 | команда                                           | назначение                   |
 | ------------------------------------------------- | ---------------------------- |
-| `python -m pytest -q`                             | запускает unit-тесты (4 шт.) |
+| `PYTHONPATH=. python -m pytest -q`                | запускает unit-тесты (5 шт.) |
 | `curl -O http://127.0.0.1:8000/projects/1/export` | скачивает `site.zip`         |
 | `sqlite3 builder.db '.tables'`                    | просмотреть базу             |
 
