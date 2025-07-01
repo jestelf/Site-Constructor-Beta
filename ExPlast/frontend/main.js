@@ -1,4 +1,52 @@
 /* === Инициализация GrapesJS === */
+const messages = {
+  ru: {
+    assetManager: {
+      addButton: 'Добавить изображение',
+      inputPlh: 'http://path/to/the/image.jpg',
+      modalTitle: 'Выбрать изображение',
+      uploadTitle: 'Перетащите файлы сюда или нажмите, чтобы загрузить',
+    },
+    deviceManager: {
+      device: 'Устройство',
+      devices: {
+        desktop: 'Десктоп',
+        tablet: 'Планшет',
+        mobileLandscape: 'Мобильный горизонтально',
+        mobilePortrait: 'Мобильный вертикально',
+      },
+    },
+    panels: {
+      buttons: {
+        titles: {
+          preview: 'Предварительный просмотр',
+          fullscreen: 'Полноэкранный режим',
+          'sw-visibility': 'Просмотр компонентов',
+          'export-template': 'Просмотреть код',
+          'open-sm': 'Открыть диспетчер стилей',
+          'open-tm': 'Настройки',
+          'open-layers': 'Открыть диспетчер слоев',
+          'open-blocks': 'Открытые блоки',
+        },
+      },
+    },
+    styleManager: {
+      empty: 'Выберите элемент перед использованием Диспетчера стилей',
+      layer: 'Слой',
+      fileButton: 'Изображения',
+      sectors: {
+        general: 'Общее',
+        layout: 'Макет',
+        typography: 'Шрифты',
+        decorations: 'Оформление',
+        extra: 'Дополнительно',
+        flex: 'Flex-атрибуты',
+        dimension: 'Измерение',
+      },
+    },
+  },
+};
+
 const editor = grapesjs.init({
   container : '#gjs',
   height    : '100%',
@@ -9,7 +57,7 @@ const editor = grapesjs.init({
     'grapesjs-plugin-absolute':{grid:true,gridChars:20,snap:true}
   },
 
-  i18n:{ locale:'ru', /* … оставьте здесь ваши переводы … */ },
+  i18n:{ locale:'ru', messages },
 
   storageManager:{autoload:false,autosave:false},
 });
