@@ -22,7 +22,7 @@ def read_page(page_id: int, db: Session = Depends(get_session)):
     return page
 
 @router.patch("/{page_id}", response_model=schemas.PageRead)
-def update_page(page_id: int, page_in: schemas.PageCreate, db: Session = Depends(get_session)):
+def update_page(page_id: int, page_in: schemas.PageUpdate, db: Session = Depends(get_session)):
     page = db.get(models.Page, page_id)
     if not page:
         raise HTTPException(status_code=404)
