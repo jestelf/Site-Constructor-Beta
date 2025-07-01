@@ -148,7 +148,11 @@ btnLoad.onclick = async ()=>{
   curPid = id;
   try{
     const {data} = await api('GET',`/projects/${id}`);
-    data.project && editor.loadProjectData(data.project);
+    editor.loadProjectData(data.project || {});
+    if(!Pages.getAll().length){
+      Pages.add({id:'index',name:'index',component:'<h1>Главная</h1>'});
+      Pages.select('index');
+    }
   }catch{alert('Нет проекта');}
 };
 
