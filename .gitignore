@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+
+# Виртуальные окружения
+.venv/
+
+# SQLite
+*.db
+
+# Файлы редакторов и ОС
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
