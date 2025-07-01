@@ -14,7 +14,7 @@ def create_element(el_in: schemas.ElementCreate, db: Session = Depends(get_sessi
     return el
 
 @router.patch("/{el_id}", response_model=schemas.ElementRead)
-def update_element(el_id: int, el_in: schemas.ElementCreate, db: Session = Depends(get_session)):
+def update_element(el_id: int, el_in: schemas.ElementUpdate, db: Session = Depends(get_session)):
     el = db.get(models.Element, el_id)
     if not el:
         raise HTTPException(status_code=404)
