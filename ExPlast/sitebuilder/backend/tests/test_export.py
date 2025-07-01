@@ -3,6 +3,8 @@ from fastapi.testclient import TestClient
 # путь к вашему приложению (вы раньше использовали именно sitebuilder.backend)
 from sitebuilder.backend.app.main import app
 from sitebuilder.backend.app.database import Base, engine
+from sitebuilder.backend.app import exporter
+import zipfile
 
 client = TestClient(app)
 
@@ -21,3 +23,21 @@ def test_export_zip():
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "application/zip"
     assert resp.content[:2] == b"PK"        # ZIP-подпись
+
+
+def test_export_file_removed(monkeypatch, tmp_path):
+    pid = client.post("/projects/", json={"name": "Demo", "data": {}}).json()["id"]
+
+    path = tmp_path / "site.zip"
+
+    def fake_build_zip(pr, db):
+        with zipfile.ZipFile(path, "w") as zf:
+            zf.writestr("index.html", "hi")
+        return str(path)
+
+    monkeypatch.setattr(exporter, "build_zip", fake_build_zip)
+
+    resp = client.get(f"/projects/{pid}/export")
+    assert resp.status_code == 200
+    resp.close()
+    assert not path.exists()
