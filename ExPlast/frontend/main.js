@@ -12,6 +12,12 @@ const editor = grapesjs.init({
   i18n:{ locale:'ru', /* … оставьте здесь ваши переводы … */ },
 
   storageManager:{autoload:false,autosave:false},
+  assetManager:{
+    assets:[
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAIAAAACUFjqAAAAEklEQVR4nGP8z4APMOGVHbHSAEEsAROxCnMTAAAAAElFTkSuQmCC',
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAIAAAACUFjqAAAAFElEQVR4nGNkYPjPgBsw4ZEbwdIAPy4BE1xg8ZcAAAAASUVORK5CYII='
+    ]
+  },
 });
 
 /* ────────────────────────────────  ПАНЕЛЬ СТРАНИЦ  ───────────────────────────── */
@@ -103,15 +109,7 @@ pick.oninput=e=>{
   s && s.addStyle({color:e.target.value});
 };
 imgBtn.onclick=()=>{
-  const s=editor.getSelected();if(!s)return;
-  const i=document.createElement('input');
-  i.type='file';i.accept='image/*';
-  i.onchange=ev=>{
-    const f=ev.target.files[0],r=new FileReader();
-    r.onload=e2=>s.set('src',e2.target.result);
-    r.readAsDataURL(f);
-  };
-  i.click();
+  editor.runCommand('open-assets');
 };
 
 function normalizePos(sel){
