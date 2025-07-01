@@ -52,6 +52,14 @@ def update_project(db: Session, pid: int, pr: schemas.ProjectUpdate):
     return _attach_dict(db_pr)
 
 
+def list_projects(db: Session):
+    """Вернуть список всех проектов."""
+    return [
+        _attach_dict(pr)
+        for pr in db.query(models.Project).order_by(models.Project.id).all()
+    ]
+
+
 # ─── Pages CRUD ───────────────────────────────────────────────
 def create_page(db: Session, pid: int, page: schemas.PageCreate):
     db_pg = models.ProjectPage(project_id=pid,

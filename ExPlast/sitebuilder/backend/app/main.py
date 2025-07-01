@@ -12,6 +12,11 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title='Site-Builder API', version='0.3.0')
 
+# ────────────────────── список проектов ──────────────────────
+@app.get('/projects/', response_model=list[schemas.ProjectOut])
+def list_projects(db: Session = Depends(get_db)):
+    return crud.list_projects(db)
+
 # ─────────────────────── проекты CRUD ────────────────────────
 @app.post('/projects/', response_model=schemas.ProjectOut, status_code=201)
 def create_project(project: schemas.ProjectCreate, db: Session = Depends(get_db)):
