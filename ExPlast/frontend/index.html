@@ -6,45 +6,26 @@
 
   <!-- GrapesJS -->
   <script src="https://cdn.jsdelivr.net/npm/grapesjs@0.22.1/dist/grapes.min.js"></script>
-  <link  href="https://cdn.jsdelivr.net/npm/grapesjs@0.22.1/dist/css/grapes.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/grapesjs@0.22.1/dist/css/grapes.min.css" rel="stylesheet"/>
+
+  <!-- Иконки и стили -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+  <link href="style.css" rel="stylesheet"/>
 
   <!-- Плагины -->
   <script src="https://cdn.jsdelivr.net/npm/grapesjs-preset-webpage@1.0.2/dist/grapesjs-preset-webpage.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/grapesjs-plugin-absolute@1.0.1/dist/grapesjs-plugin-absolute.min.js"></script>
 
-  <style>
-    html,body{margin:0;height:100%}
-    #gjs{height:calc(100vh - 54px)}
-
-    /* шапка */
-    #topBar{padding:6px;background:#f0f0f0;display:flex;gap:6px;align-items:center;font:14px/1 Arial}
-
-    /* панель страниц */
-    #pagesBar select{padding:3px;border:1px solid #999;border-radius:4px}
-    #pagesBar button{padding:3px 6px}
-
-    /* плавающая мини-панель */
-    .toolbar{
-      position:fixed;left:50%;top:60px;transform:translateX(-50%);
-      display:flex;gap:6px;z-index:9999;
-      background:#fff;border:1px solid #c7c7c7;border-radius:8px;
-      padding:4px 8px;box-shadow:0 2px 8px rgba(0,0,0,.15);
-      font:13px/1 Arial;
-    }
-    .toolbar button{border:1px solid #b3b3b3;background:#f8f8f8;border-radius:4px;
-                    padding:3px 6px;cursor:pointer;min-width:28px}
-    .toolbar button:hover{background:#ececec}
-    #colorPick{border:1px solid #b3b3b3;border-radius:4px;width:32px;height:23px;padding:0}
-  </style>
+  
 </head>
 <body>
 
   <!-- ── верхняя панель ── -->
   <div id="topBar">
-    <button id="btnCreate">Создать</button>
-    <button id="btnLoad">Загрузить</button>
-    <button id="btnSave">Сохранить</button>
-    <button id="btnExport">Экспорт</button>
+    <button id="btnCreate"><i class="fa fa-file-circle-plus"></i><span> Создать</span></button>
+    <button id="btnLoad"><i class="fa fa-folder-open"></i><span> Загрузить</span></button>
+    <button id="btnSave"><i class="fa fa-floppy-disk"></i><span> Сохранить</span></button>
+    <button id="btnExport"><i class="fa fa-file-export"></i><span> Экспорт</span></button>
 
     <!-- панель страниц -->
     <div id="pagesBar" style="margin-left:32px;display:flex;gap:4px">
@@ -58,12 +39,7 @@
 
   <!-- мини-панель -->
   <div id="inlineToolbar" class="toolbar" hidden>
-    <button data-cmd="bold"   title="Жирный (Ctrl+B)">Ж</button>
-    <button data-cmd="italic" title="Курсив (Ctrl+I)">К</button>
-    <button data-cmd="h1"     title="Заголовок 1">H1</button>
-    <button data-cmd="h2"     title="Заголовок 2">H2</button>
     <input  type="color" id="colorPick" title="Цвет текста">
-    <button id="imgReplace" hidden title="Заменить картинку">🖼</button>
     <label title="К правому краю" style="user-select:none">
       ⇢<input type="checkbox" id="anchorRight" style="margin-left:4px">
     </label>

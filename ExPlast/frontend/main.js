@@ -80,39 +80,39 @@ editor.BlockManager.add('int-link',{
 /* ─────────────────────────────  МИНИ-ПАНЕЛЬ  ───────────────────────────── */
 const bar=document.getElementById('inlineToolbar'),
       pick=document.getElementById('colorPick'),
-      imgBtn=document.getElementById('imgReplace'),
       chkRight=document.getElementById('anchorRight'),
       chkBottom=document.getElementById('anchorBottom');
 
+const panel=editor.Panels.addPanel({id:'inline',el:bar,visible:false});
+
+function addBtn(id, icon, title, run){
+  editor.Commands.add(id,{run});
+  editor.Panels.addButton('inline',{id,className:`fa ${icon}`,command:id,attributes:{title}});
+}
+
+addBtn('bold','fa-bold','Жирный',ed=>ed.runCommand('core:exec-command',{command:'bold'}));
+addBtn('italic','fa-italic','Курсив',ed=>ed.runCommand('core:exec-command',{command:'italic'}));
+addBtn('h1','fa-heading','H1',ed=>ed.runCommand('core:exec-command',{command:'h1'}));
+addBtn('h2','fa-heading','H2',ed=>ed.runCommand('core:exec-command',{command:'h2'}));
+addBtn('align-left','fa-align-left','Выровнять слева',ed=>{const s=ed.getSelected();s&&s.addStyle({'text-align':'left'});});
+addBtn('align-center','fa-align-center','Выровнять по центру',ed=>{const s=ed.getSelected();s&&s.addStyle({'text-align':'center'});});
+addBtn('align-right','fa-align-right','Выровнять справа',ed=>{const s=ed.getSelected();s&&s.addStyle({'text-align':'right'});});
+addBtn('font-inc','fa-plus','Крупнее',ed=>{const s=ed.getSelected();if(!s)return;const fs=parseInt(s.getStyle()['font-size'])||16;s.addStyle({'font-size':(fs+2)+'px'});});
+addBtn('font-dec','fa-minus','Мельче',ed=>{const s=ed.getSelected();if(!s)return;const fs=parseInt(s.getStyle()['font-size'])||16;s.addStyle({'font-size':Math.max(8,fs-2)+'px'});});
+addBtn('link','fa-link','Ссылка',ed=>{const s=ed.getSelected();if(!s)return;const u=prompt('URL','https://');u&&s.addAttributes({href:u});});
+addBtn('img-replace','fa-image','Картинка',ed=>{const s=ed.getSelected();if(!s)return;const i=document.createElement('input');i.type='file';i.accept='image/*';i.onchange=ev=>{const f=ev.target.files[0],r=new FileReader();r.onload=e2=>s.set('src',e2.target.result);r.readAsDataURL(f);};i.click();});
+
+const imgBtn=panel.get('buttons').find(b=>b.id==='img-replace');
+
 editor.on('component:selected', sel=>{
   if(!sel||sel.is('wrapper')) return bar.hidden=true;
-  const r=sel.view.el.getBoundingClientRect();
-  bar.style.top =(r.top-50)+'px';
-  bar.style.left=(r.left+r.width/2)+'px';
   bar.hidden=false;
-  imgBtn.hidden=sel.get('type')!=='image';
+  imgBtn&&imgBtn.set('visible',sel.get('type')==='image');
   chkRight.checked=!!sel.getAttributes()['data-anchor-right'];
   chkBottom.checked=!!sel.getAttributes()['data-anchor-bottom'];
 });
-bar.onclick = e=>{
-  const cmd=e.target.dataset.cmd;
-  cmd && editor.Commands.run('core:exec-command',{command:cmd});
-};
-pick.oninput=e=>{
-  const s=editor.getSelected();
-  s && s.addStyle({color:e.target.value});
-};
-imgBtn.onclick=()=>{
-  const s=editor.getSelected();if(!s)return;
-  const i=document.createElement('input');
-  i.type='file';i.accept='image/*';
-  i.onchange=ev=>{
-    const f=ev.target.files[0],r=new FileReader();
-    r.onload=e2=>s.set('src',e2.target.result);
-    r.readAsDataURL(f);
-  };
-  i.click();
-};
+
+pick.oninput=e=>{const s=editor.getSelected();s&&s.addStyle({color:e.target.value});};
 
 function normalizePos(sel){
   const frame=editor.Canvas.getFrameEl();
