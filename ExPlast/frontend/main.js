@@ -119,21 +119,66 @@ async function api(m,p,b){
 }
 
 /* ───────────────────────  CRUD проекта  ─────────────────────── */
-btnCreate.onclick=async()=>{try{await api('POST','/projects/',{name:'Сайт',data:{}});alert('Создано (#1)');}catch{alert('Уже есть');}};
-btnLoad.onclick  =async()=>{try{const {data}=await api('GET','/projects/1');data.project&&editor.loadProjectData(data.project);}catch{alert('Нет проекта');}};
-btnSave.onclick  =async()=>{await saveAll();alert('Сохранено');};
-btnExport.onclick=async()=>{try{const blob=await (await fetch('/projects/1/export')).blob();
-  const u=URL.createObjectURL(blob);Object.assign(document.createElement('a'),{href:u,download:'site.zip'}).click();
-  URL.revokeObjectURL(u);}catch{alert('Сначала сохраните');}};
+let curPid = null;
+
+async function listProjects(){
+  const lst = await api('GET','/projects/');
+  return lst.map(p=>`${p.id}: ${p.name}`).join('\n');
+}
+
+async function chooseId(msg){
+  const list = await listProjects();
+  const promptMsg = (list?list+'\n':'') + msg;
+  const id = prompt(promptMsg, curPid||'1');
+  return id?parseInt(id):null;
+}
+
+btnCreate.onclick = async ()=>{
+  alert(await listProjects()||'Нет проектов');
+  const name = prompt('Название проекта','Сайт');
+  if(!name) return;
+  const pr = await api('POST','/projects/',{name,data:{}});
+  curPid = pr.id;
+  alert(`Создано (#${curPid})`);
+};
+
+btnLoad.onclick = async ()=>{
+  const id = await chooseId('ID проекта для загрузки:');
+  if(!id) return;
+  curPid = id;
+  try{
+    const {data} = await api('GET',`/projects/${id}`);
+    data.project && editor.loadProjectData(data.project);
+  }catch{alert('Нет проекта');}
+};
+
+btnSave.onclick = async ()=>{
+  if(!curPid){
+    const id = await chooseId('Сохранить в проект ID:');
+    if(!id) return; curPid=id;
+  }
+  await saveAll(curPid);
+  alert('Сохранено');
+};
+
+btnExport.onclick = async ()=>{
+  if(!curPid){alert('Сначала сохраните');return;}
+  try{
+    const blob = await (await fetch(`/projects/${curPid}/export`)).blob();
+    const u = URL.createObjectURL(blob);
+    Object.assign(document.createElement('a'),{href:u,download:'site.zip'}).click();
+    URL.revokeObjectURL(u);
+  }catch{alert('Ошибка экспорта');}
+};
 
 /* сохраняем ВСЕ страницы проекта */
-async function saveAll(){
+async function saveAll(pid){
   const proj={};                    // одна таблица с html/css каждой страницы
   for(const pg of Pages.getAll()){
     Pages.select(pg);
     proj[pg.getId()]={ html:editor.getHtml(), css:editor.getCss() };
   }
-  await api('PUT','/projects/1',{name:'Сайт',data:{project:editor.getProjectData(),pages:proj}});
+  await api('PUT',`/projects/${pid}`,{name:'Сайт '+pid,data:{project:editor.getProjectData(),pages:proj}});
 }
 
 /* fallback-блоки, если preset не подгрузился */
