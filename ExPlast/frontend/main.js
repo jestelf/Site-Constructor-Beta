@@ -289,4 +289,12 @@ if(!grapesjs.plugins.get('gjs-preset-webpage')){
   const bm=editor.BlockManager;
   bm.add('txt',{label:'Текст',content:'<p>Введите текст</p>'});
   bm.add('img',{label:'Картинка',content:{type:'image'}});
+  bm.add('hdr',{label:'Заголовок',category:'Базовые',
+    content:'<h1>Заголовок</h1>'});
+  bm.add('btn',{label:'Кнопка',category:'Базовые',
+    content:{type:'link',content:'Кнопка',classes:['btn']}});
+  bm.add('list',{label:'Список',category:'Базовые',
+    content:'<ul><li>Пункт 1</li><li>Пункт 2</li></ul>'});
+  bm.add('form',{label:'Форма',category:'Базовые',
+    content:'<form><input placeholder="Имя"><br/><input type="email" placeholder="Email"><br/><textarea placeholder="Сообщение"></textarea><br/><button type="submit">Отправить</button></form>'});
 }
