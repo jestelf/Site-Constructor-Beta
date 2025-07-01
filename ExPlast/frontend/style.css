@@ -1,28 +1,29 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
 
 html,body{
   margin:0;
   height:100%;
-  font-family:'Roboto',sans-serif;
+  font-family:'Inter',sans-serif;
 }
 
 #gjs{
   height:calc(100vh - 54px);
-  background:#fafafa;
+  background:#fff;
 }
 
 /* верхняя панель */
 #topBar{
   padding:6px 12px;
-  background:linear-gradient(#3a3f44,#32373c);
+  background:#fff;
+  border-bottom:1px solid #e3e3e3;
   display:flex;
   gap:8px;
   align-items:center;
-  color:#fff;
-  box-shadow:0 2px 4px rgba(0,0,0,.4);
+  color:#333;
+  box-shadow:0 1px 3px rgba(0,0,0,.05);
 }
 #topBar button{
-  background:#4b86c2;
+  background:#6c63ff;
   border:none;
   color:#fff;
   padding:4px 8px;
@@ -33,29 +34,29 @@ html,body{
   gap:4px;
   transition:background-color .2s;
 }
-#topBar button:hover{background:#3973a1;}
+#topBar button:hover{background:#594fd4;}
 
 /* панель страниц */
 #pagesBar{
   margin-left:32px;
   display:flex;
   gap:4px;
-  background:#2e3338;
+  background:#f2f2f2;
   padding:4px 8px;
   border-radius:6px;
-  box-shadow:0 1px 3px rgba(0,0,0,.3);
+  box-shadow:0 1px 3px rgba(0,0,0,.1);
 }
 
 #pagesBar select{
   padding:4px 6px;
-  border:1px solid #555;
+  border:1px solid #ccc;
   border-radius:4px;
-  background:#3a3f44;
-  color:#fff;
+  background:#fff;
+  color:#333;
 }
 
 #pagesBar button{
-  background:#4b86c2;
+  background:#6c63ff;
   border:none;
   color:#fff;
   padding:4px 8px;
@@ -63,7 +64,7 @@ html,body{
   cursor:pointer;
   transition:background-color .2s;
 }
-#pagesBar button:hover{background:#3973a1;}
+#pagesBar button:hover{background:#594fd4;}
 
 /* боковая мини-панель */
 .toolbar{
@@ -74,17 +75,17 @@ html,body{
   flex-direction:column;
   gap:6px;
   z-index:9999;
-  background:#3a3f44;
-  border:1px solid #555;
+  background:#fff;
+  border:1px solid #ddd;
   border-radius:8px;
   padding:6px;
-  box-shadow:0 2px 8px rgba(0,0,0,.25);
+  box-shadow:0 2px 8px rgba(0,0,0,.1);
   font-size:13px;
-  color:#fff;
+  color:#333;
 }
 .toolbar button{
   border:none;
-  background:#4b86c2;
+  background:#6c63ff;
   border-radius:4px;
   padding:5px;
   cursor:pointer;
@@ -92,10 +93,10 @@ html,body{
   color:#fff;
   transition:background-color .2s;
 }
-.toolbar button:hover{background:#3973a1;}
+.toolbar button:hover{background:#594fd4;}
 
 #colorPick{
-  border:1px solid #777;
+  border:1px solid #ccc;
   border-radius:4px;
   width:32px;
   height:23px;
