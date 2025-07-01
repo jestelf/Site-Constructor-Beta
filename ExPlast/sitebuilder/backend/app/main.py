@@ -12,6 +12,11 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title='Site-Builder API', version='0.3.0')
 
+# ────────────────────── список проектов ──────────────────────
+@app.get('/projects/', response_model=list[schemas.ProjectOut])
+def list_projects(db: Session = Depends(get_db)):
+    return crud.list_projects(db)
+
 # ─────────────────────── проекты CRUD ────────────────────────
 @app.post('/projects/', response_model=schemas.ProjectOut, status_code=201)
 def create_project(project: schemas.ProjectCreate, db: Session = Depends(get_db)):
@@ -30,6 +35,20 @@ def update_project(pid: int, proj: schemas.ProjectUpdate, db: Session = Depends(
     if not pr:
         raise HTTPException(404, 'Not found')
     return pr
+
+
+# ────────────────────── версии проекта ──────────────────────
+@app.get('/projects/{pid}/versions', response_model=list[schemas.VersionOut])
+def list_versions(pid: int, db: Session = Depends(get_db)):
+    return crud.list_versions(db, pid)
+
+
+@app.get('/projects/{pid}/versions/{num}', response_model=schemas.VersionOut)
+def get_version(pid: int, num: int, db: Session = Depends(get_db)):
+    ver = crud.get_version(db, pid, num)
+    if not ver:
+        raise HTTPException(404, 'Not found')
+    return ver
 
 
 # ─────────────────────── страницы CRUD ───────────────────────
@@ -58,11 +77,17 @@ def delete_page(pid: int, pgid: int, db: Session = Depends(get_db)):
 
 # ────────────────────────── экспорт ZIP ──────────────────────
 @app.get('/projects/{pid}/export')
-def export_zip(pid: int, db: Session = Depends(get_db)):
+def export_zip(pid: int, v: int | None = None, db: Session = Depends(get_db)):
     pr = crud.get_project(db, pid)
     if not pr:
         raise HTTPException(404, 'Not found')
-    zpath = exporter.build_zip(pr, db)
+    data = None
+    if v is not None:
+        ver = crud.get_version(db, pid, v)
+        if not ver:
+            raise HTTPException(404, 'Not found')
+        data = ver.data
+    zpath = exporter.build_zip(pr, db, data)
     return FileResponse(zpath, filename='site.zip', media_type='application/zip')
 
 

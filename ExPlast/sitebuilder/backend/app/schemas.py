@@ -39,3 +39,13 @@ class PageOut(PageBase):
     project_id: int
 
     model_config = ConfigDict(from_attributes=True)
+
+
+# ---------- Version ----------
+class VersionOut(BaseModel):
+    id        : int
+    project_id: int
+    number    : int
+    data      : dict[Any, Any]
+
+    model_config = ConfigDict(from_attributes=True)
