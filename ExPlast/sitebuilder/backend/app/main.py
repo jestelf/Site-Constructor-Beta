@@ -10,9 +10,13 @@ from . import models, schemas, crud, exporter
 from .database import engine, get_db
 
 # ────────────────────────────── init ─────────────────────────
-models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title='Site-Builder API', version='0.3.0')
+
+
+@app.on_event("startup")
+def init_db() -> None:
+    models.Base.metadata.create_all(bind=engine)
 
 # ────────────────────── список проектов ──────────────────────
 @app.get('/projects/', response_model=list[schemas.ProjectOut])
