@@ -1,8 +1,10 @@
 from pathlib import Path
+import os
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from starlette.responses import FileResponse
+from starlette.background import BackgroundTask
 
 from . import models, schemas, crud, exporter
 from .database import engine, get_db
@@ -73,7 +75,12 @@ def export_zip(pid: int, db: Session = Depends(get_db)):
     if not pr:
         raise HTTPException(404, 'Not found')
     zpath = exporter.build_zip(pr, db)
-    return FileResponse(zpath, filename='site.zip', media_type='application/zip')
+    return FileResponse(
+        zpath,
+        filename='site.zip',
+        media_type='application/zip',
+        background=BackgroundTask(os.unlink, zpath),
+    )
 
 
 # ─────────────────────── статика фронтенда ───────────────────
