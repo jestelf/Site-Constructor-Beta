@@ -59,6 +59,14 @@ def list_projects(db: Session):
         for pr in db.query(models.Project).order_by(models.Project.id).all()
     ]
 
+def delete_project(db: Session, pid: int) -> bool:
+    pr = db.query(models.Project).filter_by(id=pid).first()
+    if not pr:
+        return False
+    db.delete(pr)
+    db.commit()
+    return True
+
 
 # ─── Pages CRUD ───────────────────────────────────────────────
 def create_page(db: Session, pid: int, page: schemas.PageCreate):

@@ -36,6 +36,11 @@ def update_project(pid: int, proj: schemas.ProjectUpdate, db: Session = Depends(
         raise HTTPException(404, 'Not found')
     return pr
 
+@app.delete('/projects/{pid}', status_code=204)
+def delete_project(pid: int, db: Session = Depends(get_db)):
+    if not crud.delete_project(db, pid):
+        raise HTTPException(404, 'Not found')
+
 
 # ─────────────────────── страницы CRUD ───────────────────────
 @app.post('/projects/{pid}/pages',  response_model=schemas.PageOut, status_code=201)
