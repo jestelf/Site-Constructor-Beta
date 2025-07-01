@@ -8,6 +8,10 @@ class ElementBase(BaseModel):
     position: int
 
 class ElementCreate(ElementBase): pass
+class ElementUpdate(BaseModel):
+    type: Optional[str] = None
+    content: Optional[str] = None
+    position: Optional[int] = None
 class ElementRead(ElementBase):
     id: int
 
@@ -16,6 +20,9 @@ class PageBase(BaseModel):
     path: str
 
 class PageCreate(PageBase): pass
+class PageUpdate(BaseModel):
+    title: Optional[str] = None
+    path: Optional[str] = None
 class PageRead(PageBase):
     id: int
     elements: List[ElementRead] = []
