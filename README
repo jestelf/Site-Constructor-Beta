@@ -80,6 +80,7 @@ export DATABASE_URL=postgresql://user:pass@localhost/dbname
 | Фича                                    | Где в коде                                            |
 | --------------------------------------- | ----------------------------------------------------- |
 | Drag & Drop + snap-grid                 | `frontend/main.js`, плагин `grapesjs-plugin-absolute` |
+| Позиции в процентах + привязка к краям  | `frontend/main.js` |
 | Мини-toolbar *(bold/italic/H1/H2/цвет)* | `frontend/main.js`                                    |
 | Полный русификатор GrapesJS             | `i18n.messages.ru` в `main.js`                        |
 | Pages-UI (добавить/удалить, select)     | `frontend/main.js`                                    |

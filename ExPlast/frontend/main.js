@@ -80,7 +80,9 @@ editor.BlockManager.add('int-link',{
 /* ─────────────────────────────  МИНИ-ПАНЕЛЬ  ───────────────────────────── */
 const bar=document.getElementById('inlineToolbar'),
       pick=document.getElementById('colorPick'),
-      imgBtn=document.getElementById('imgReplace');
+      imgBtn=document.getElementById('imgReplace'),
+      chkRight=document.getElementById('anchorRight'),
+      chkBottom=document.getElementById('anchorBottom');
 
 editor.on('component:selected', sel=>{
   if(!sel||sel.is('wrapper')) return bar.hidden=true;
@@ -89,6 +91,8 @@ editor.on('component:selected', sel=>{
   bar.style.left=(r.left+r.width/2)+'px';
   bar.hidden=false;
   imgBtn.hidden=sel.get('type')!=='image';
+  chkRight.checked=!!sel.getAttributes()['data-anchor-right'];
+  chkBottom.checked=!!sel.getAttributes()['data-anchor-bottom'];
 });
 bar.onclick = e=>{
   const cmd=e.target.dataset.cmd;
@@ -109,6 +113,49 @@ imgBtn.onclick=()=>{
   };
   i.click();
 };
+
+function normalizePos(sel){
+  const frame=editor.Canvas.getFrameEl();
+  const cw=frame.offsetWidth,ch=frame.offsetHeight;
+  const fr=frame.getBoundingClientRect();
+  const r=sel.view.el.getBoundingClientRect();
+  const left=r.left-fr.left,top=r.top-fr.top;
+  const w=r.width,h=r.height;
+  const attr=sel.getAttributes();
+  const st={width:(w/cw*100)+'%',height:(h/ch*100)+'%'};
+  if(attr['data-anchor-right']){
+    st.right=((cw-(left+w))/cw*100)+'%';
+    st.left='';
+  }else{
+    st.left=(left/cw*100)+'%';
+    st.right='';
+  }
+  if(attr['data-anchor-bottom']){
+    st.bottom=((ch-(top+h))/ch*100)+'%';
+    st.top='';
+  }else{
+    st.top=(top/ch*100)+'%';
+    st.bottom='';
+  }
+  sel.addStyle(st);
+}
+
+chkRight.onchange=e=>{
+  const s=editor.getSelected();if(!s)return;
+  if(e.target.checked) s.addAttributes({'data-anchor-right':'1'});
+  else s.removeAttributes('data-anchor-right');
+  normalizePos(s);
+};
+
+chkBottom.onchange=e=>{
+  const s=editor.getSelected();if(!s)return;
+  if(e.target.checked) s.addAttributes({'data-anchor-bottom':'1'});
+  else s.removeAttributes('data-anchor-bottom');
+  normalizePos(s);
+};
+
+editor.on('component:drag:end', normalizePos);
+editor.on('component:resize:end', normalizePos);
 
 /* ───────────────────────────  API helpers  ─────────────────────────── */
 async function api(m,p,b){
