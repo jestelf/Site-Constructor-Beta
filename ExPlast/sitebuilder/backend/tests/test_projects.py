@@ -24,3 +24,9 @@ def test_update():
     r = client.put(f"/projects/{pid}", json={"name": "Y", "data": {}})
     assert r.status_code == 200
     assert r.json()["name"] == "Y"
+
+def test_delete():
+    pid = client.post("/projects/", json={"name": "Demo", "data": {}}).json()["id"]
+    r = client.delete(f"/projects/{pid}")
+    assert r.status_code == 204
+    assert client.get(f"/projects/{pid}").status_code == 404
