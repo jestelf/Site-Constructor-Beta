@@ -55,6 +55,14 @@ python -m uvicorn sitebuilder.backend.app.main:app --reload
 # 👉 http://127.0.0.1:8000/docs  — Swagger API
 ```
 
+По умолчанию SQLite-база размещается в файле `builder.db`. При желании можно
+переопределить путь к базе через переменную окружения `DATABASE_URL`,
+например:
+
+```bash
+export DATABASE_URL=postgresql://user:pass@localhost/dbname
+```
+
 ---
 
 ## ⚙️ CLI-скрипты
