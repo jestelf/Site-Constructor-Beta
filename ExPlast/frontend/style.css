@@ -1,0 +1,65 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+
+html,body{
+  margin:0;
+  height:100%;
+  font-family:'Roboto',sans-serif;
+}
+
+#gjs{height:calc(100vh - 54px)}
+
+/* верхняя панель */
+#topBar{
+  padding:6px;
+  background:#3a3f44;
+  display:flex;
+  gap:8px;
+  align-items:center;
+  color:#fff;
+}
+#topBar button{
+  background:#4b86c2;
+  border:none;
+  color:#fff;
+  padding:4px 8px;
+  border-radius:4px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:4px;
+  transition:background-color .2s;
+}
+#topBar button:hover{background:#3973a1;}
+
+/* панель страниц */
+#pagesBar select{padding:3px;border:1px solid #777;border-radius:4px}
+#pagesBar button{padding:3px 6px}
+
+/* боковая мини-панель */
+.toolbar{
+  position:absolute;
+  right:10px;
+  top:60px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  z-index:9999;
+  background:#fff;
+  border:1px solid #ddd;
+  border-radius:8px;
+  padding:6px;
+  box-shadow:0 2px 8px rgba(0,0,0,.15);
+  font-size:13px;
+}
+.toolbar button{
+  border:none;
+  background:#f0f0f0;
+  border-radius:4px;
+  padding:5px;
+  cursor:pointer;
+  min-width:28px;
+  transition:background-color .2s;
+}
+.toolbar button:hover{background:#e2e2e2;}
+
+#colorPick{border:1px solid #b3b3b3;border-radius:4px;width:32px;height:23px;padding:0}
