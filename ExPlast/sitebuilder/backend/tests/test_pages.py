@@ -28,3 +28,16 @@ def test_pages_crud():
     del_resp = client.delete(f"/projects/{pid}/pages/{pg['id']}")
     assert del_resp.status_code==204
     assert client.get(f"/projects/{pid}/pages").json()==[]
+
+def test_get_page():
+    proj = client.post("/projects/", json={"name":"Site","data":{}}).json()
+    pid = proj["id"]
+    pg = client.post(f"/projects/{pid}/pages", json={"name":"about","title":"О нас","data":{}}).json()
+    pgid = pg["id"]
+
+    r = client.get(f"/projects/{pid}/pages/{pgid}")
+    assert r.status_code == 200
+    assert r.json()["id"] == pgid
+
+    r2 = client.get(f"/projects/{pid}/pages/9999")
+    assert r2.status_code == 404

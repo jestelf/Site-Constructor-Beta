@@ -83,6 +83,13 @@ def list_pages(db: Session, pid: int):
             for pg in db.query(models.ProjectPage)
                         .filter_by(project_id=pid).all()]
 
+def get_page(db: Session, pid: int, pgid: int):
+    pg = (db.query(models.ProjectPage)
+            .filter_by(project_id=pid, id=pgid).first())
+    if not pg:
+        return None
+    return _attach_page(pg)
+
 def update_page(db: Session, pid: int, pgid: int, page: schemas.PageUpdate):
     db_pg = (db.query(models.ProjectPage)
                .filter_by(project_id=pid, id=pgid).first())

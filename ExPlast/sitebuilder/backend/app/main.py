@@ -53,6 +53,13 @@ def create_page(pid: int, page: schemas.PageCreate, db: Session = Depends(get_db
 def list_pages(pid: int, db: Session = Depends(get_db)):
     return crud.list_pages(db, pid)
 
+@app.get('/projects/{pid}/pages/{pgid}', response_model=schemas.PageOut)
+def read_page(pid: int, pgid: int, db: Session = Depends(get_db)):
+    pg = crud.get_page(db, pid, pgid)
+    if not pg:
+        raise HTTPException(404, 'Page not found')
+    return pg
+
 @app.put('/projects/{pid}/pages/{pgid}', response_model=schemas.PageOut)
 def update_page(pid: int, pgid: int, page: schemas.PageUpdate, db: Session = Depends(get_db)):
     pg = crud.update_page(db, pid, pgid, page)
