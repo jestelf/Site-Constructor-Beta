@@ -139,6 +139,10 @@ btnCreate.onclick = async ()=>{
   if(!name) return;
   const pr = await api('POST','/projects/',{name,data:{}});
   curPid = pr.id;
+  // новый проект должен начинаться с чистого состояния
+  editor.loadProjectData({pages: []});
+  Pages.add({id:'index',name:'index',component:'<h1>Главная</h1>'});
+  Pages.select('index');
   alert(`Создано (#${curPid})`);
 };
 
@@ -148,7 +152,7 @@ btnLoad.onclick = async ()=>{
   curPid = id;
   try{
     const {data} = await api('GET',`/projects/${id}`);
-    editor.loadProjectData(data.project || {});
+    editor.loadProjectData(data.project || {pages: []});
     if(!Pages.getAll().length){
       Pages.add({id:'index',name:'index',component:'<h1>Главная</h1>'});
       Pages.select('index');
