@@ -57,6 +57,15 @@ const editor = grapesjs.init({
     'grapesjs-plugin-absolute':{grid:true,gridChars:20,snap:true}
   },
 
+  assetManager:{
+    assets:[
+      'https://via.placeholder.com/600x400/92c952',
+      'https://via.placeholder.com/400x300/771796',
+      'https://via.placeholder.com/300x400/24f355',
+      'https://via.placeholder.com/300/56a8c2'
+    ]
+  },
+
   i18n:{ locale:'ru', messages },
 
   storageManager:{autoload:false,autosave:false},
@@ -148,7 +157,9 @@ addBtn('align-right','fa-align-right','Выровнять справа',ed=>{con
 addBtn('font-inc','fa-plus','Крупнее',ed=>{const s=ed.getSelected();if(!s)return;const fs=parseInt(s.getStyle()['font-size'])||16;s.addStyle({'font-size':(fs+2)+'px'});});
 addBtn('font-dec','fa-minus','Мельче',ed=>{const s=ed.getSelected();if(!s)return;const fs=parseInt(s.getStyle()['font-size'])||16;s.addStyle({'font-size':Math.max(8,fs-2)+'px'});});
 addBtn('link','fa-link','Ссылка',ed=>{const s=ed.getSelected();if(!s)return;const u=prompt('URL','https://');u&&s.addAttributes({href:u});});
-addBtn('img-replace','fa-image','Картинка',ed=>{const s=ed.getSelected();if(!s)return;const i=document.createElement('input');i.type='file';i.accept='image/*';i.onchange=ev=>{const f=ev.target.files[0],r=new FileReader();r.onload=e2=>s.set('src',e2.target.result);r.readAsDataURL(f);};i.click();});
+addBtn('img-replace','fa-image','Картинка',ed=>{
+  ed.runCommand('open-assets');
+});
 
 const imgBtn=panel.get('buttons').find(b=>b.id==='img-replace');
 
