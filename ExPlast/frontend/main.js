@@ -54,7 +54,7 @@ const editor = grapesjs.init({
 
   plugins:['gjs-preset-webpage','grapesjs-plugin-absolute'],
   pluginOpts:{
-    'grapesjs-plugin-absolute':{grid:true,gridChars:20,snap:true}
+    'grapesjs-plugin-absolute':{grid:true,gridChars:20,snap:true,columns:12}
   },
 
   assetManager:{
@@ -70,6 +70,8 @@ const editor = grapesjs.init({
 
   storageManager:{autoload:false,autosave:false},
 });
+
+let gridSettings = {step:20, cols:12}; // если это реально нужно
 
 /* ────────────────────────────────  Auto Layout ────────────────────────────── */
 const defType = editor.DomComponents.getType('default');
@@ -124,6 +126,7 @@ editor.on('component:add', cmp=>{const p=cmp.parent();p&&applyAutoLayout(p);});
 editor.on('component:remove', cmp=>{const p=cmp.parent();p&&applyAutoLayout(p);});
 editor.on('component:update:data-layout component:update:data-gap component:update:data-align',
            cmp=>applyAutoLayout(cmp));
+
 
 /* ────────────────────────────────  ПАНЕЛЬ СТРАНИЦ  ───────────────────────────── */
 const Pages   = editor.Pages;
@@ -234,12 +237,46 @@ const bar=document.getElementById('inlineToolbar'),
       pick=document.getElementById('colorPick'),
       chkRight=document.getElementById('anchorRight'),
       chkBottom=document.getElementById('anchorBottom'),
-      chkCenterX=document.getElementById('anchorCenterX'),
-      chkCenterY=document.getElementById('anchorCenterY'),
-      chkStretchW=document.getElementById('stretchWidth'),
-      chkStretchH=document.getElementById('stretchHeight');
+const
+  gridBtn = document.getElementById('gridBtn'),
+  gridModal = document.getElementById('gridModal'),
+  gridStepInp = document.getElementById('gridStep'),
+  gridColsInp = document.getElementById('gridCols'),
+  gridOk = document.getElementById('gridOk'),
+  gridCancel = document.getElementById('gridCancel');
+
+const
+  chkCenterX = document.getElementById('anchorCenterX'),
+  chkCenterY = document.getElementById('anchorCenterY'),
+  chkStretchW = document.getElementById('stretchWidth'),
+  chkStretchH = document.getElementById('stretchHeight');
+
 
 const panel=editor.Panels.addPanel({id:'inline',el:bar,visible:false});
+
+function applyGrid(){
+  const cfg = editor.Config;
+  const opts = (cfg.pluginsOpts||cfg.pluginOpts||{})['grapesjs-plugin-absolute'];
+  if(opts){
+    opts.gridChars = gridSettings.step;
+    opts.snap = true;
+    opts.columns = gridSettings.cols;
+    editor.trigger('change:absolute-grid');
+  }
+}
+
+gridBtn.onclick = () => {
+  gridStepInp.value = gridSettings.step;
+  gridColsInp.value = gridSettings.cols;
+  gridModal.hidden = false;
+};
+gridCancel.onclick = () => gridModal.hidden = true;
+gridOk.onclick = () => {
+  gridSettings.step = parseInt(gridStepInp.value) || gridSettings.step;
+  gridSettings.cols = parseInt(gridColsInp.value) || gridSettings.cols;
+  gridModal.hidden = true;
+  applyGrid();
+};
 
 function addBtn(id, icon, title, run){
   editor.Commands.add(id,{run});
@@ -411,6 +448,8 @@ btnCreate.onclick = async ()=>{
   curPid = pr.id;
   // новый проект должен начинаться с чистого состояния
   editor.loadProjectData({pages: []});
+  gridSettings = {step:20, cols:12};
+  applyGrid();
   Pages.add({id:'index',name:'index',component:'<h1>Главная</h1>'});
   Pages.select('index');
   alert(`Создано (#${curPid})`);
@@ -423,6 +462,10 @@ btnLoad.onclick = async ()=>{
   try{
     const {data} = await api('GET',`/projects/${id}`);
     editor.loadProjectData(data.project || {pages: []});
+    if(data.project && data.project.gridSettings){
+      gridSettings = data.project.gridSettings;
+      applyGrid();
+    }
     if(!Pages.getAll().length){
       Pages.add({id:'index',name:'index',component:'<h1>Главная</h1>'});
       Pages.select('index');
@@ -456,7 +499,9 @@ async function saveAll(pid){
     Pages.select(pg);
     proj[pg.getId()]={ html:editor.getHtml(), css:editor.getCss() };
   }
-  await api('PUT',`/projects/${pid}`,{name:'Сайт '+pid,data:{project:editor.getProjectData(),pages:proj}});
+  const pdata = editor.getProjectData();
+  pdata.gridSettings = gridSettings;
+  await api('PUT',`/projects/${pid}`,{name:'Сайт '+pid,data:{project:pdata,pages:proj}});
 }
 
 /* fallback-блоки, если preset не подгрузился */
