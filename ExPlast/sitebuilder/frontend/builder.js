@@ -342,7 +342,7 @@ class Builder{
   }
 
   async loadProject(){
-    const id = await chooseId('ID проекта для загрузки:');
+    const id = parseInt(prompt('ID проекта для загрузки:', this.projectId || '1'));
     if(!id) return;
     curPid = id;
     try{
@@ -352,6 +352,8 @@ class Builder{
         Pages.add({id:'index',name:'index',component:'<h1>Главная</h1>'});
         Pages.select('index');
       }
+      this.projectId = id;
+      fillSelect();
     }catch{alert('Нет проекта');}
   }
 
