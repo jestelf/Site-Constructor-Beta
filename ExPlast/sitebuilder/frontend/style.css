@@ -1,5 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
 
+:root{
+  --color-bg:#f0f5f7;
+  --color-panel:#2f3e48;
+  --color-primary:#38b2ac;
+  --color-primary-hover:#2d9c94;
+  --radius:6px;
+  --shadow:0 4px 8px rgba(0,0,0,.3);
+}
+
 html,body{
   margin:0;
   height:100%;
@@ -8,7 +17,7 @@ html,body{
 
 #canvas{
   height:calc(100vh - 54px);
-  background:#fafafa;
+  background:var(--color-bg);
 }
 
 /* элементы, создаваемые редактором */
@@ -18,7 +27,7 @@ html,body{
   box-sizing:border-box;
 }
 .selected{
-  outline:2px dashed #4b86c2;
+  outline:2px dashed var(--color-primary);
 }
 
 .draggable .resize-handle{
@@ -26,7 +35,7 @@ html,body{
   width:8px;
   height:8px;
   background:#fff;
-  border:1px solid #4b86c2;
+  border:1px solid var(--color-primary);
   box-sizing:border-box;
   display:none;
 }
@@ -38,69 +47,69 @@ html,body{
 
 .toolbar-btn{
   border:none;
-  background:#4b86c2;
-  border-radius:4px;
+  background:var(--color-primary);
+  border-radius:var(--radius);
   padding:5px;
   cursor:pointer;
   min-width:28px;
   color:#fff;
   transition:background-color .2s;
 }
-.toolbar-btn:hover{background:#3973a1;}
+.toolbar-btn:hover{background:var(--color-primary-hover);}
 
 /* верхняя панель */
 #topBar{
   padding:6px 12px;
-  background:linear-gradient(#3a3f44,#32373c);
+  background:var(--color-panel);
   display:flex;
   gap:8px;
   align-items:center;
   color:#fff;
-  box-shadow:0 2px 4px rgba(0,0,0,.4);
+  box-shadow:var(--shadow);
 }
 #topBar button{
-  background:#4b86c2;
+  background:var(--color-primary);
   border:none;
   color:#fff;
   padding:4px 8px;
-  border-radius:4px;
+  border-radius:var(--radius);
   cursor:pointer;
   display:flex;
   align-items:center;
   gap:4px;
   transition:background-color .2s;
 }
-#topBar button:hover{background:#3973a1;}
+#topBar button:hover{background:var(--color-primary-hover);}
 
 /* панель страниц */
 #pagesBar{
   margin-left:32px;
   display:flex;
   gap:4px;
-  background:#2e3338;
+  background:var(--color-panel);
   padding:4px 8px;
-  border-radius:6px;
-  box-shadow:0 1px 3px rgba(0,0,0,.3);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
 }
 
 #pagesBar select{
   padding:4px 6px;
   border:1px solid #555;
-  border-radius:4px;
-  background:#3a3f44;
+  border-radius:var(--radius);
+  background:var(--color-panel);
   color:#fff;
 }
 
 #pagesBar button{
-  background:#4b86c2;
+  background:var(--color-primary);
   border:none;
   color:#fff;
   padding:4px 8px;
-  border-radius:4px;
+  border-radius:var(--radius);
   cursor:pointer;
   transition:background-color .2s;
 }
-#pagesBar button:hover{background:#3973a1;}
+#pagesBar button:hover{background:var(--color-primary-hover);}
 
 /* боковая мини-панель */
 .toolbar{
@@ -111,29 +120,29 @@ html,body{
   flex-direction:column;
   gap:6px;
   z-index:9999;
-  background:#3a3f44;
+  background:var(--color-panel);
   border:1px solid #555;
-  border-radius:8px;
+  border-radius:var(--radius);
   padding:6px;
-  box-shadow:0 2px 8px rgba(0,0,0,.25);
+  box-shadow:var(--shadow);
   font-size:13px;
   color:#fff;
 }
 .toolbar button{
   border:none;
-  background:#4b86c2;
-  border-radius:4px;
+  background:var(--color-primary);
+  border-radius:var(--radius);
   padding:5px;
   cursor:pointer;
   min-width:28px;
   color:#fff;
   transition:background-color .2s;
 }
-.toolbar button:hover{background:#3973a1;}
+.toolbar button:hover{background:var(--color-primary-hover);}
 
 #colorPick{
   border:1px solid #777;
-  border-radius:4px;
+  border-radius:var(--radius);
   width:32px;
   height:23px;
   padding:0;
@@ -154,7 +163,7 @@ html,body{
 }
 
 #layersList li.selected{
-  background:#4b86c2;
+  background:var(--color-primary);
   color:#fff;
 }
 
@@ -167,9 +176,9 @@ html,body{
   background:#fff;
   color:#000;
   border:1px solid #555;
-  border-radius:8px;
+  border-radius:var(--radius);
   padding:10px;
-  box-shadow:0 2px 8px rgba(0,0,0,.25);
+  box-shadow:var(--shadow);
   z-index:10000;
 }
 #configPanel[hidden]{display:none;}
