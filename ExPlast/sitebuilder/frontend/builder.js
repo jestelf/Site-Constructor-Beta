@@ -118,49 +118,24 @@ document.addEventListener('mousemove', e => {
 document.addEventListener('mouseup', () => { dragItem = null; });
 
 /* ────────────────────────────────  ПАНЕЛЬ СТРАНИЦ  ───────────────────────────── */
-const Pages   = editor.Pages;
-const selBox  = document.getElementById('pageSelect');
-const btnAdd  = document.getElementById('pageAdd');
-const btnDel  = document.getElementById('pageDel');
 
 function fillSelect(){
-  selBox.innerHTML='';
+  const box = builder.pageSelect;
+  if(!box) return;
+  box.innerHTML="";
   Pages.getAll().forEach(p=>{
-    const o=document.createElement('option');
+    const o=document.createElement("option");
     o.value=p.getId();
     o.textContent=p.getName();
     if(Pages.getSelected()===p) o.selected=true;
-    selBox.appendChild(o);
+    box.appendChild(o);
   });
 }
-
-/* первая страница, если пусто */
-if(!Pages.getAll().length){
-  Pages.add({id:'index',name:'index',component:'<h1>Главная</h1>'});
-  Pages.select('index');
-}
-fillSelect();
 
 /* события */
 editor.on('page:add page:remove page:update', fillSelect);
 editor.on('page', fillSelect);
 
-selBox.onchange = ()=> Pages.select(selBox.value);
-
-btnAdd.onclick = ()=>{
-  const id = prompt('Имя новой страницы (без .html):','about');
-  if(!id) return;
-  if(Pages.get(id)){alert('Уже есть');return;}
-  Pages.add({id,name:id,component:'<h1>'+id+'</h1>'});
-  Pages.select(id);
-};
-
-btnDel.onclick = ()=>{
-  const cur=Pages.getSelected();
-  if(!cur){alert('Не выбрано');return;}
-  if(cur.getId()==='index'){alert('index удалять нельзя');return;}
-  if(confirm('Удалить '+cur.getName()+'?')) Pages.remove(cur);
-};
 
 /* ───── dropdown pages для href ───── */
 const pageOptions = ()=> Pages.getAll().map(p=>({value:p.getId()+'.html',name:p.getName()}));
@@ -306,51 +281,6 @@ async function chooseId(msg){
   return id?parseInt(id):null;
 }
 
-btnCreate.onclick = async ()=>{
-  alert(await listProjects()||'Нет проектов');
-  const name = prompt('Название проекта','Сайт');
-  if(!name) return;
-  const pr = await api('POST','/projects/',{name,data:{}});
-  curPid = pr.id;
-  // новый проект должен начинаться с чистого состояния
-  editor.loadProjectData({pages: []});
-  Pages.add({id:'index',name:'index',component:'<h1>Главная</h1>'});
-  Pages.select('index');
-  alert(`Создано (#${curPid})`);
-};
-
-btnLoad.onclick = async ()=>{
-  const id = await chooseId('ID проекта для загрузки:');
-  if(!id) return;
-  curPid = id;
-  try{
-    const pr = await api('GET',`/projects/${id}`);
-    editor.loadProjectData(pr.data || {pages: []});
-    if(!Pages.getAll().length){
-      Pages.add({id:'index',name:'index',component:'<h1>Главная</h1>'});
-      Pages.select('index');
-    }
-  }catch{alert('Нет проекта');}
-};
-
-btnSave.onclick = async ()=>{
-  if(!curPid){
-    const id = await chooseId('Сохранить в проект ID:');
-    if(!id) return; curPid=id;
-  }
-  await saveAll(curPid);
-  alert('Сохранено');
-};
-
-btnExport.onclick = async ()=>{
-  if(!curPid){alert('Сначала сохраните');return;}
-  try{
-    const blob = await (await fetch(`/projects/${curPid}/export`)).blob();
-    const u = URL.createObjectURL(blob);
-    Object.assign(document.createElement('a'),{href:u,download:'site.zip'}).click();
-    URL.revokeObjectURL(u);
-  }catch{alert('Ошибка экспорта');}
-};
 
 /* сохраняем JSON-проект в поле data */
 async function saveAll(pid){
@@ -372,3 +302,94 @@ if(!grapesjs.plugins.get('gjs-preset-webpage')){
   bm.add('form',{label:'Форма',category:'Базовые',
     content:'<form><input placeholder="Имя"><br/><input type="email" placeholder="Email"><br/><textarea placeholder="Сообщение"></textarea><br/><button type="submit">Отправить</button></form>'});
 }
+
+class Builder{
+  init(){
+    this.btnCreate = document.getElementById('btnCreate');
+    this.btnLoad   = document.getElementById('btnLoad');
+    this.btnSave   = document.getElementById('btnSave');
+    this.btnExport = document.getElementById('btnExport');
+
+    this.pageSelect = document.getElementById('pageSelect');
+    this.pageAdd    = document.getElementById('pageAdd');
+    this.pageDel    = document.getElementById('pageDel');
+
+    this.btnCreate.onclick = () => this.createProject();
+    this.btnLoad.onclick   = () => this.loadProject();
+    this.btnSave.onclick   = () => this.saveProject();
+    this.btnExport.onclick = () => this.exportProject();
+
+    this.pageSelect.onchange = () => Pages.select(this.pageSelect.value);
+    this.pageAdd.onclick     = () => this.addPage();
+    this.pageDel.onclick     = () => this.deletePage();
+
+    if(!Pages.getAll().length){
+      Pages.add({id:'index',name:'index',component:'<h1>Главная</h1>'});
+      Pages.select('index');
+    }
+    fillSelect();
+  }
+
+  async createProject(){
+    alert(await listProjects()||'Нет проектов');
+    const name = prompt('Название проекта','Сайт');
+    if(!name) return;
+    const pr = await api('POST','/projects/',{name,data:{}});
+    curPid = pr.id;
+    editor.loadProjectData({pages: []});
+    Pages.add({id:'index',name:'index',component:'<h1>Главная</h1>'});
+    Pages.select('index');
+    alert(`Создано (#${curPid})`);
+  }
+
+  async loadProject(){
+    const id = await chooseId('ID проекта для загрузки:');
+    if(!id) return;
+    curPid = id;
+    try{
+      const pr = await api('GET',`/projects/${id}`);
+      editor.loadProjectData(pr.data || {pages: []});
+      if(!Pages.getAll().length){
+        Pages.add({id:'index',name:'index',component:'<h1>Главная</h1>'});
+        Pages.select('index');
+      }
+    }catch{alert('Нет проекта');}
+  }
+
+  async saveProject(){
+    if(!curPid){
+      const id = await chooseId('Сохранить в проект ID:');
+      if(!id) return; curPid=id;
+    }
+    await saveAll(curPid);
+    alert('Сохранено');
+  }
+
+  async exportProject(){
+    if(!curPid){alert('Сначала сохраните');return;}
+    try{
+      const blob = await (await fetch(`/projects/${curPid}/export`)).blob();
+      const u = URL.createObjectURL(blob);
+      Object.assign(document.createElement('a'),{href:u,download:'site.zip'}).click();
+      URL.revokeObjectURL(u);
+    }catch{alert('Ошибка экспорта');}
+  }
+
+  addPage(){
+    const id = prompt('Имя новой страницы (без .html):','about');
+    if(!id) return;
+    if(Pages.get(id)){alert('Уже есть');return;}
+    Pages.add({id,name:id,component:'<h1>'+id+'</h1>'});
+    Pages.select(id);
+  }
+
+  deletePage(){
+    const cur=Pages.getSelected();
+    if(!cur){alert('Не выбрано');return;}
+    if(cur.getId()==='index'){alert('index удалять нельзя');return;}
+    if(confirm('Удалить '+cur.getName()+'?')) Pages.remove(cur);
+  }
+}
+
+const builder = new Builder();
+window.builder = builder;
