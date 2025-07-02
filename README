@@ -21,10 +21,10 @@
 
 ```text
 jestelf/
-├── frontend/
-│   ├── index.html        # интерфейс (GrapesJS + плагины)
-│   └── main.js           # i18n, свободное позиционирование, Pages-UI
 └── sitebuilder/
+    ├── frontend/
+    │   ├── index.html        # интерфейс (GrapesJS + плагины)
+    │   └── main.js           # i18n, свободное позиционирование, Pages-UI
     ├── backend/
     │   ├── app/
     │   │   ├── crud.py        # SQLite-CRUD
@@ -49,7 +49,7 @@ cd Site-Constructor-Beta
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 
-pip install -r sitebuilder/requirements.txt
+pip install -r ExPlast/sitebuilder/backend/requirements.txt
 python -m uvicorn sitebuilder.backend.app.main:app --reload
 # 👉 http://127.0.0.1:8000       — редактор
 # 👉 http://127.0.0.1:8000/docs  — Swagger API
@@ -79,11 +79,11 @@ export DATABASE_URL=postgresql://user:pass@localhost/dbname
 
 | Фича                                    | Где в коде                                            |
 | --------------------------------------- | ----------------------------------------------------- |
-| Drag & Drop + snap-grid                 | `frontend/main.js`, плагин `grapesjs-plugin-absolute` |
-| Позиции в процентах + привязка к краям  | `frontend/main.js` |
-| Мини-toolbar *(bold/italic/H1/H2/цвет)* | `frontend/main.js`                                    |
+| Drag & Drop + snap-grid                 | `sitebuilder/frontend/main.js`, плагин `grapesjs-plugin-absolute` |
+| Позиции в процентах + привязка к краям  | `sitebuilder/frontend/main.js` |
+| Мини-toolbar *(bold/italic/H1/H2/цвет)* | `sitebuilder/frontend/main.js`                                    |
 | Полный русификатор GrapesJS             | `i18n.messages.ru` в `main.js`                        |
-| Pages-UI (добавить/удалить, select)     | `frontend/main.js`                                    |
+| Pages-UI (добавить/удалить, select)     | `sitebuilder/frontend/main.js`                                    |
 | href-trait для внутренних страниц       | кастомный trait `link-pages`                          |
 | ZIP-экспорт                             | `backend/app/exporter.py`                             |
 | 100 % тест-покрытие CRUD/экспорт        | `sitebuilder/backend/tests/`                          |
