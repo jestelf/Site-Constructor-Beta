@@ -42,6 +42,7 @@
 
   <!-- панель блоков -->
   <div id="blocksBar" class="toolbar open">
+    <h3 class="panel-title">Блоки</h3>
     <button onclick="addBlock('text')">Текст</button>
     <button onclick="addBlock('image')">Картинка</button>
     <button onclick="addBlock('header')">Заголовок</button>
@@ -50,6 +51,7 @@
 
   <!-- панель слоёв -->
   <div id="layersPanel" class="toolbar open">
+    <h3 class="panel-title">Слои</h3>
     <ul id="layersList"></ul>
     <div style="display:flex;gap:4px;">
       <button id="layerUp" class="toolbar-btn" title="Вверх">↑</button>
@@ -71,6 +73,7 @@
 
   <!-- панель свойств -->
   <div id="propsPanel" class="toolbar open">
+    <h3 class="panel-title">Свойства</h3>
     <label>Ширина: <input type="number" id="propWidth" min="1"></label>
     <label>Высота: <input type="number" id="propHeight" min="1"></label>
     <label>Размер шрифта: <input type="number" id="propFont" min="1"></label>
