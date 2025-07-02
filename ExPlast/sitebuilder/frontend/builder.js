@@ -324,8 +324,8 @@ btnLoad.onclick = async ()=>{
   if(!id) return;
   curPid = id;
   try{
-    const {data} = await api('GET',`/projects/${id}`);
-    editor.loadProjectData(data.project || {pages: []});
+    const pr = await api('GET',`/projects/${id}`);
+    editor.loadProjectData(pr.data || {pages: []});
     if(!Pages.getAll().length){
       Pages.add({id:'index',name:'index',component:'<h1>Главная</h1>'});
       Pages.select('index');
@@ -352,14 +352,10 @@ btnExport.onclick = async ()=>{
   }catch{alert('Ошибка экспорта');}
 };
 
-/* сохраняем ВСЕ страницы проекта */
+/* сохраняем JSON-проект в поле data */
 async function saveAll(pid){
-  const proj={};                    // одна таблица с html/css каждой страницы
-  for(const pg of Pages.getAll()){
-    Pages.select(pg);
-    proj[pg.getId()]={ html:editor.getHtml(), css:editor.getCss() };
-  }
-  await api('PUT',`/projects/${pid}`,{name:'Сайт '+pid,data:{project:editor.getProjectData(),pages:proj}});
+  const data = editor.getProjectData();
+  await api('PUT',`/projects/${pid}`,{name:'Сайт '+pid,data});
 }
 
 /* fallback-блоки, если preset не подгрузился */
