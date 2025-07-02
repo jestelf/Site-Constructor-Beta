@@ -71,6 +71,8 @@ const editor = grapesjs.init({
   storageManager:{autoload:false,autosave:false},
 });
 
+editor.on('change:changesCount', () => { isSaved = false; });
+
 /* ────────────────────  Простое перетаскивание элементов  ──────────────────── */
 const pageModel = [];
 let dragItem = null, dx = 0, dy = 0;
@@ -268,6 +270,7 @@ async function api(m,p,b){
 
 /* ───────────────────────  CRUD проекта  ─────────────────────── */
 let curPid = null;
+let isSaved = false;
 
 async function listProjects(){
   const lst = await api('GET','/projects/');
@@ -328,6 +331,7 @@ class Builder{
       Pages.select('index');
     }
     fillSelect();
+    isSaved = false;
   }
 
   async createProject(){
@@ -339,6 +343,7 @@ class Builder{
     editor.loadProjectData({pages: []});
     Pages.add({id:'index',name:'index',component:'<h1>Главная</h1>'});
     Pages.select('index');
+    isSaved = true;
   }
 
   async loadProject(){
@@ -353,8 +358,11 @@ class Builder{
         Pages.add({id:'index',name:'index',component:'<h1>Главная</h1>'});
         Pages.select('index');
       }
+      isSaved = true;
+
       this.projectId = id;
       fillSelect();
+
     }catch{alert('Нет проекта');}
   }
 
@@ -370,10 +378,14 @@ class Builder{
     const data = editor.getProjectData();
     await api('PUT', `/projects/${pid}`, {name:'Сайт '+pid, data});
     alert('Сохранено');
+    isSaved = true;
   }
 
   async exportProject(){
-    if(!curPid){alert('Сначала сохраните');return;}
+    if(!curPid || !isSaved){
+      alert('Сначала сохраните проект');
+      return;
+    }
     try{
       const blob = await (await fetch(`/projects/${curPid}/export`)).blob();
       const u = URL.createObjectURL(blob);
@@ -388,13 +400,17 @@ class Builder{
     if(Pages.get(id)){alert('Уже есть');return;}
     Pages.add({id,name:id,component:'<h1>'+id+'</h1>'});
     Pages.select(id);
+    isSaved = false;
   }
 
   deletePage(){
     const cur=Pages.getSelected();
     if(!cur){alert('Не выбрано');return;}
     if(cur.getId()==='index'){alert('index удалять нельзя');return;}
-    if(confirm('Удалить '+cur.getName()+'?')) Pages.remove(cur);
+    if(confirm('Удалить '+cur.getName()+'?')){
+      Pages.remove(cur);
+      isSaved = false;
+    }
   }
 }
 
