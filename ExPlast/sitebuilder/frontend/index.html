@@ -16,18 +16,18 @@
 
   <!-- ── верхняя панель ── -->
   <div id="topBar">
-    <button id="btnCreate"><i class="fa fa-file-circle-plus"></i><span> Создать</span></button>
-    <button id="btnLoad"><i class="fa fa-folder-open"></i><span> Загрузить</span></button>
-    <button id="btnSave"><i class="fa fa-floppy-disk"></i><span> Сохранить</span></button>
-    <button id="btnExport"><i class="fa fa-file-export"></i><span> Экспорт</span></button>
-    <button id="btnConfig"><i class="fa fa-gear"></i><span> Настройки</span></button>
-    <button id="btnTheme" title="Сменить тему">🌙</button>
+    <button id="btnCreate" class="btn"><i class="fa fa-file-circle-plus"></i><span> Создать</span></button>
+    <button id="btnLoad" class="btn"><i class="fa fa-folder-open"></i><span> Загрузить</span></button>
+    <button id="btnSave" class="btn"><i class="fa fa-floppy-disk"></i><span> Сохранить</span></button>
+    <button id="btnExport" class="btn"><i class="fa fa-file-export"></i><span> Экспорт</span></button>
+    <button id="btnConfig" class="btn"><i class="fa fa-gear"></i><span> Настройки</span></button>
+    <button id="btnTheme" class="btn" title="Сменить тему">🌙</button>
 
     <!-- панель страниц -->
     <div id="pagesBar">
       <select id="pageSelect"></select>
-      <button id="pageAdd"  title="Новая страница">＋</button>
-      <button id="pageDel"  title="Удалить страницу">🗑</button>
+      <button id="pageAdd"  class="btn" title="Новая страница">＋</button>
+      <button id="pageDel"  class="btn" title="Удалить страницу">🗑</button>
     </div>
   </div>
 
@@ -55,9 +55,9 @@
     <h3 class="panel-title">Слои</h3>
     <ul id="layersList"></ul>
     <div style="display:flex;gap:4px;">
-      <button id="layerUp" class="toolbar-btn" title="Вверх">↑</button>
-      <button id="layerDown" class="toolbar-btn" title="Вниз">↓</button>
-      <button id="layerToggle" class="toolbar-btn" title="Показать/скрыть"><i class="fa fa-eye"></i></button>
+      <button id="layerUp" class="btn toolbar-btn" title="Вверх">↑</button>
+      <button id="layerDown" class="btn toolbar-btn" title="Вниз">↓</button>
+      <button id="layerToggle" class="btn toolbar-btn" title="Показать/скрыть"><i class="fa fa-eye"></i></button>
     </div>
   </div>
 

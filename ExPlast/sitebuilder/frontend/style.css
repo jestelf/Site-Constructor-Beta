@@ -45,6 +45,17 @@ html,body{
   background-size:20px 20px;
 }
 
+.btn{
+  background:var(--color-primary);
+  color:#fff;
+  border:none;
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  cursor:pointer;
+  transition:background-color .2s;
+}
+.btn:hover{background:var(--color-primary-hover);}
+
 /* элементы, создаваемые редактором */
 .draggable{
   position:absolute;
@@ -93,16 +104,9 @@ html,body{
 }
 
 .toolbar-btn{
-  border:none;
-  background:var(--color-primary);
-  border-radius:var(--radius);
   padding:5px;
-  cursor:pointer;
   min-width:28px;
-  color:#fff;
-  transition:background-color .2s;
 }
-.toolbar-btn:hover{background:var(--color-primary-hover);}
 
 /* верхняя панель */
 #topBar{
@@ -115,18 +119,11 @@ html,body{
   box-shadow:var(--shadow);
 }
 #topBar button{
-  background:var(--color-primary);
-  border:none;
-  color:#fff;
   padding:4px 8px;
-  border-radius:var(--radius);
-  cursor:pointer;
   display:flex;
   align-items:center;
   gap:4px;
-  transition:background-color .2s;
 }
-#topBar button:hover{background:var(--color-primary-hover);}
 
 /* панель страниц */
 #pagesBar{
@@ -153,15 +150,8 @@ html,body{
 }
 
 #pagesBar button{
-  background:var(--color-primary);
-  border:none;
-  color:#fff;
   padding:4px 8px;
-  border-radius:var(--radius);
-  cursor:pointer;
-  transition:background-color .2s;
 }
-#pagesBar button:hover{background:var(--color-primary-hover);}
 
 /* боковая мини-панель */
 .toolbar{
@@ -190,16 +180,9 @@ html,body{
   pointer-events:auto;
 }
 .toolbar button{
-  border:none;
-  background:var(--color-primary);
-  border-radius:var(--radius);
   padding:5px;
-  cursor:pointer;
   min-width:28px;
-  color:#fff;
-  transition:background-color .2s;
 }
-.toolbar button:hover{background:var(--color-primary-hover);}
 
 .panel-title{
   background:var(--color-panel);
