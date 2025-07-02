@@ -5,6 +5,7 @@ from sitebuilder.backend.app.main import app
 from sitebuilder.backend.app.database import Base, engine
 from sitebuilder.backend.app import exporter
 import zipfile
+import io
 
 client = TestClient(app)
 
@@ -14,8 +15,8 @@ def setup_function():
     Base.metadata.create_all(bind=engine)
 
 def test_export_zip():
-    # 1. создаём минимальный проект
-    mock = {"html": "<h1>Hello</h1>", "css": "h1{color:red;}"}
+    # 1. создаём минимальный проект в новой структуре
+    mock = {"pages": {"index": {"html": "<h1>Hello</h1>", "css": "h1{color:red;}"}}}
     pid = client.post("/projects/", json={"name": "Demo", "data": mock}).json()["id"]
 
     # 2. запрашиваем экспорт
@@ -23,6 +24,11 @@ def test_export_zip():
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "application/zip"
     assert resp.content[:2] == b"PK"        # ZIP-подпись
+
+    with zipfile.ZipFile(io.BytesIO(resp.content)) as zf:
+        html = zf.read("index.html").decode()
+        assert "<h1>Hello</h1>" in html
+        assert "h1{color:red;}" in html
 
 
 def test_export_file_removed(monkeypatch, tmp_path):

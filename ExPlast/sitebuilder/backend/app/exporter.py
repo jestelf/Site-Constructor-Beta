@@ -18,9 +18,16 @@ _HTML = """<!doctype html>
 </body></html>"""
 
 def _render(page: ProjectPage) -> bytes:
+    """Собрать полноценную HTML-страницу из данных страницы."""
     tpl = Template(_HTML)
-    css  = page.data.get("css", "")
-    html = page.data.get("html", "")
+    pdata = page.data or {}
+    if isinstance(pdata, str):
+        try:
+            pdata = json.loads(pdata)
+        except Exception:
+            pdata = {}
+    html = pdata.get("html", "")
+    css = pdata.get("css", "")
     return tpl.render(title=page.name, html=html, css=css).encode()
 
 def build_zip(project: Project, db: Session) -> str:
