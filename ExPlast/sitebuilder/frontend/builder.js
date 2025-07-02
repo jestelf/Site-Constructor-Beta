@@ -158,6 +158,14 @@ class Builder {
 
     this.updateSelect();
     this.switchPage('index');
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Delete' && this.selected) {
+        this.selected.remove();
+        this.selected = null;
+        if (bar) bar.hidden = true;
+      }
+    });
   }
 
   updateSelect() {
