@@ -11,6 +11,25 @@ html,body{
   background:#fafafa;
 }
 
+/* элементы, создаваемые редактором */
+.draggable{
+  position:absolute;
+  cursor:move;
+  box-sizing:border-box;
+}
+
+.toolbar-btn{
+  border:none;
+  background:#4b86c2;
+  border-radius:4px;
+  padding:5px;
+  cursor:pointer;
+  min-width:28px;
+  color:#fff;
+  transition:background-color .2s;
+}
+.toolbar-btn:hover{background:#3973a1;}
+
 /* верхняя панель */
 #topBar{
   padding:6px 12px;
