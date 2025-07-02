@@ -131,7 +131,7 @@ html,body{
   flex-direction:column;
   gap:6px;
   z-index:9999;
-  background:var(--color-panel);
+  background:rgba(47,62,72,0.8);
   border:1px solid #555;
   border-radius:var(--radius);
   padding:6px;
@@ -150,6 +150,15 @@ html,body{
   transition:background-color .2s;
 }
 .toolbar button:hover{background:var(--color-primary-hover);}
+
+.panel-title{
+  background:var(--color-panel);
+  border:1px solid #555;
+  border-radius:var(--radius);
+  padding:4px 6px;
+  margin:-6px -6px 6px -6px;
+  text-align:center;
+}
 
 #colorPick{
   border:1px solid #777;
