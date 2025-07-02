@@ -39,6 +39,16 @@
     <button onclick="addBlock('button')">Кнопка</button>
   </div>
 
+  <!-- панель слоёв -->
+  <div id="layersPanel" class="toolbar">
+    <ul id="layersList"></ul>
+    <div style="display:flex;gap:4px;">
+      <button id="layerUp" class="toolbar-btn" title="Вверх">↑</button>
+      <button id="layerDown" class="toolbar-btn" title="Вниз">↓</button>
+      <button id="layerToggle" class="toolbar-btn" title="Показать/скрыть"><i class="fa fa-eye"></i></button>
+    </div>
+  </div>
+
   <!-- мини-панель -->
   <div id="inlineToolbar" class="toolbar" hidden>
     <input  type="color" id="colorPick" title="Цвет текста">
