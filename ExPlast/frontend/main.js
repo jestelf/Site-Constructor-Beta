@@ -134,6 +134,47 @@ editor.BlockManager.add('int-link',{
   ]}
 });
 
+/* компонент Frame */
+const domc = editor.DomComponents;
+domc.addType('frame',{
+  model:{
+    defaults:{
+      tagName:'div',
+      draggable:true,
+      droppable:true,
+      resizable:true,
+      attributes:{'data-width':'300','data-height':'200','data-grid':'20'},
+      traits:[
+        {type:'number',name:'data-width',label:'Ширина',changeProp:1},
+        {type:'number',name:'data-height',label:'Высота',changeProp:1},
+        {type:'number',name:'data-grid',label:'Сетка',changeProp:1},
+      ],
+      style:{
+        position:'relative',
+        width:'300px',
+        height:'200px',
+        'background-size':'20px 20px',
+        'background-image':'linear-gradient(#ddd 1px,transparent 1px),linear-gradient(90deg,#ddd 1px,transparent 1px)'
+      }
+    },
+    init(){
+      const up=()=>{
+        const a=this.getAttributes();
+        this.addStyle({width:a['data-width']+'px',height:a['data-height']+'px'});
+        const g=parseInt(a['data-grid']);
+        if(g){
+          this.addStyle({'background-size':`${g}px ${g}px`,'background-image':'linear-gradient(#ddd 1px,transparent 1px),linear-gradient(90deg,#ddd 1px,transparent 1px)'});
+        }else{
+          this.addStyle({'background-image':'none'});
+        }
+      };
+      this.on('change:attributes:data-width change:attributes:data-height change:attributes:data-grid',up);
+      up();
+    }
+  }
+});
+editor.BlockManager.add('frame',{label:'Frame',category:'Базовые',content:{type:'frame'}});
+
 /* ─────────────────────────────  МИНИ-ПАНЕЛЬ  ───────────────────────────── */
 const bar=document.getElementById('inlineToolbar'),
       pick=document.getElementById('colorPick'),
