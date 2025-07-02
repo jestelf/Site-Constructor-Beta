@@ -138,6 +138,15 @@ html,body{
   box-shadow:var(--shadow);
   font-size:13px;
   color:#fff;
+  opacity:0;
+  transform:scale(.95);
+  pointer-events:none;
+  transition:opacity .2s, transform .2s;
+}
+.toolbar.open{
+  opacity:1;
+  transform:scale(1);
+  pointer-events:auto;
 }
 .toolbar button{
   border:none;
@@ -183,7 +192,7 @@ html,body{
   position:absolute;
   left:50%;
   top:80px;
-  transform:translateX(-50%);
+  transform:translateX(-50%) scale(.95);
   background:#fff;
   color:#000;
   border:1px solid #555;
@@ -191,8 +200,15 @@ html,body{
   padding:10px;
   box-shadow:var(--shadow);
   z-index:10000;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .2s, transform .2s;
 }
-#configPanel[hidden]{display:none;}
+#configPanel.open{
+  opacity:1;
+  transform:translateX(-50%) scale(1);
+  pointer-events:auto;
+}
 #configPanel label{display:block;margin:4px 0;}
 
 /* панель свойств */
