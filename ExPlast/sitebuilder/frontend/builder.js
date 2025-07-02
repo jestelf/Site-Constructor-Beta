@@ -235,6 +235,7 @@ class Builder {
     this.cfgName     = document.getElementById('cfgName');
     this.cfgBg       = document.getElementById('cfgBg');
     this.cfgGrid     = document.getElementById('cfgGrid');
+    this.gridOverlay = document.getElementById('gridOverlay');
     this.propW       = document.getElementById('propWidth');
     this.propH       = document.getElementById('propHeight');
     this.propFont    = document.getElementById('propFont');
@@ -244,6 +245,10 @@ class Builder {
     if (this.propH)   this.propH.oninput   = () => this.changeProps();
     if (this.propFont) this.propFont.oninput = () => this.changeProps();
     if (this.propBg)  this.propBg.oninput  = () => this.changeProps();
+    if (this.cfgGrid) this.cfgGrid.oninput = () => {
+      this.project.config.grid = parseInt(this.cfgGrid.value) || 0;
+      this.applyConfig();
+    };
 
     this.btnCreate.onclick  = () => this.createProject();
     this.btnLoad.onclick    = () => this.loadProject();
@@ -442,6 +447,15 @@ class Builder {
     }
     if (this.canvas) {
       this.canvas.style.background = this.project.config.bgColor || '#fafafa';
+      if (this.gridOverlay) {
+        const step = parseInt(this.project.config.grid) || 0;
+        if (step > 0) {
+          this.gridOverlay.style.backgroundSize = `${step}px ${step}px`;
+          this.gridOverlay.style.display = '';
+        } else {
+          this.gridOverlay.style.display = 'none';
+        }
+      }
     }
   }
 
