@@ -331,15 +331,14 @@ class Builder{
   }
 
   async createProject(){
-    alert(await listProjects()||'Нет проектов');
-    const name = prompt('Название проекта','Сайт');
+    const name = prompt('Название проекта', 'Сайт');
     if(!name) return;
     const pr = await api('POST','/projects/',{name,data:{}});
+    this.projectId = pr.id;
     curPid = pr.id;
     editor.loadProjectData({pages: []});
     Pages.add({id:'index',name:'index',component:'<h1>Главная</h1>'});
     Pages.select('index');
-    alert(`Создано (#${curPid})`);
   }
 
   async loadProject(){
