@@ -9,6 +9,20 @@
   --shadow:0 4px 8px rgba(0,0,0,.3);
 }
 
+html.theme-light{
+  --color-bg:#f0f5f7;
+  --color-panel:#2f3e48;
+  --color-primary:#38b2ac;
+  --color-primary-hover:#2d9c94;
+}
+
+html.theme-dark{
+  --color-bg:#1e1e1e;
+  --color-panel:#222831;
+  --color-primary:#4b86c2;
+  --color-primary-hover:#3b6e9b;
+}
+
 html,body{
   margin:0;
   height:100%;
