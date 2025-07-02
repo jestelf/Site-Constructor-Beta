@@ -79,6 +79,7 @@ const btnDel  = document.getElementById('pageDel');
 const gridToggle = document.getElementById('gridToggle');
 const gridInput  = document.getElementById('gridStep');
 const gjsEl      = document.getElementById('gjs');
+
 let   gridSize   = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--grid-size')) || 20;
 
 function canvasBody(){
@@ -91,6 +92,7 @@ function applyGrid(){
   body.style.setProperty('--grid-size', gridSize + 'px');
   gjsEl.classList.toggle('grid-bg', gridToggle.checked);
   body.classList.toggle('grid-bg', gridToggle.checked);
+
 }
 
 gridInput.value = gridSize;
