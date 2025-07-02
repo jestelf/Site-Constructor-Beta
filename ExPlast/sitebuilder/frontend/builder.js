@@ -1,5 +1,8 @@
 // Простые обработчики перетаскивания элементов
 let dragItem = null, dx = 0, dy = 0;
+let selectedItem = null;
+const anchorRight = document.getElementById('anchorRight');
+const anchorBottom = document.getElementById('anchorBottom');
 
 document.addEventListener('mousedown', e => {
   const el = e.target.closest('.draggable');
@@ -18,8 +21,16 @@ document.addEventListener('mousemove', e => {
   let t = e.clientY - p.top - dy;
   l = Math.max(0, Math.min(l, p.width - dragItem.offsetWidth));
   t = Math.max(0, Math.min(t, p.height - dragItem.offsetHeight));
-  dragItem.style.left = (l / p.width * 100) + '%';
-  dragItem.style.top  = (t / p.height * 100) + '%';
+  if (dragItem.dataset.anchorRight) {
+    dragItem.style.right = ((p.width - l - dragItem.offsetWidth) / p.width * 100) + '%';
+  } else {
+    dragItem.style.left = (l / p.width * 100) + '%';
+  }
+  if (dragItem.dataset.anchorBottom) {
+    dragItem.style.bottom = ((p.height - t - dragItem.offsetHeight) / p.height * 100) + '%';
+  } else {
+    dragItem.style.top  = (t / p.height * 100) + '%';
+  }
 });
 
 document.addEventListener('mouseup', () => { dragItem = null; });
@@ -65,6 +76,50 @@ if (pick) {
 }
 
 bar?.addEventListener('mousedown', e => e.stopPropagation());
+
+document.addEventListener('click', e => {
+  if (!builder.canvas || bar.contains(e.target)) return;
+  const el = e.target.closest('.draggable');
+  if (el && builder.canvas.contains(el)) {
+    selectedItem = el;
+    bar.hidden = false;
+    if (anchorRight) anchorRight.checked = !!el.dataset.anchorRight;
+    if (anchorBottom) anchorBottom.checked = !!el.dataset.anchorBottom;
+  } else {
+    selectedItem = null;
+    bar.hidden = true;
+  }
+});
+
+function toggleAnchor(type) {
+  if (!selectedItem) return;
+  const p = selectedItem.parentElement.getBoundingClientRect();
+  const r = selectedItem.getBoundingClientRect();
+  if (type === 'Right') {
+    if (anchorRight.checked) {
+      selectedItem.style.right = ((p.right - r.right) / p.width * 100) + '%';
+      selectedItem.style.left = '';
+      selectedItem.dataset.anchorRight = '1';
+    } else {
+      selectedItem.style.left = ((r.left - p.left) / p.width * 100) + '%';
+      selectedItem.style.right = '';
+      delete selectedItem.dataset.anchorRight;
+    }
+  } else {
+    if (anchorBottom.checked) {
+      selectedItem.style.bottom = ((p.bottom - r.bottom) / p.height * 100) + '%';
+      selectedItem.style.top = '';
+      selectedItem.dataset.anchorBottom = '1';
+    } else {
+      selectedItem.style.top = ((r.top - p.top) / p.height * 100) + '%';
+      selectedItem.style.bottom = '';
+      delete selectedItem.dataset.anchorBottom;
+    }
+  }
+}
+
+anchorRight?.addEventListener('change', () => toggleAnchor('Right'));
+anchorBottom?.addEventListener('change', () => toggleAnchor('Bottom'));
 
 class Builder {
   constructor() {
