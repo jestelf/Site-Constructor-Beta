@@ -52,10 +52,7 @@ const editor = grapesjs.init({
   height    : '100%',
   openBlocksOnLoad:true,
 
-  plugins:['gjs-preset-webpage','grapesjs-plugin-absolute'],
-  pluginOpts:{
-    'grapesjs-plugin-absolute':{grid:true,gridChars:20,snap:true}
-  },
+  plugins:['gjs-preset-webpage'],
 
   assetManager:{
     assets:[
