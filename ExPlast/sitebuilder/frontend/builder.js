@@ -71,6 +71,52 @@ const editor = grapesjs.init({
   storageManager:{autoload:false,autosave:false},
 });
 
+/* ────────────────────  Простое перетаскивание элементов  ──────────────────── */
+const pageModel = [];
+let dragItem = null, dx = 0, dy = 0;
+
+document.querySelectorAll('.draggable').forEach(el => {
+  const rect = el.getBoundingClientRect();
+  const parentRect = el.parentElement.getBoundingClientRect();
+  const info = {
+    el,
+    type: el.dataset.type || el.tagName.toLowerCase(),
+    left: ((rect.left - parentRect.left) / parentRect.width) * 100,
+    top: ((rect.top - parentRect.top) / parentRect.height) * 100,
+  };
+  pageModel.push(info);
+});
+
+document.addEventListener('mousedown', e => {
+  const trg = e.target.closest('.draggable');
+  if(!trg) return;
+  dragItem = pageModel.find(i => i.el === trg);
+  if(!dragItem) return;
+  const r = trg.getBoundingClientRect();
+  dx = e.clientX - r.left;
+  dy = e.clientY - r.top;
+  e.preventDefault();
+});
+
+document.addEventListener('mousemove', e => {
+  if(!dragItem) return;
+  const p = dragItem.el.parentElement.getBoundingClientRect();
+  let l = e.clientX - p.left - dx;
+  let t = e.clientY - p.top - dy;
+  const maxL = p.width - dragItem.el.offsetWidth;
+  const maxT = p.height - dragItem.el.offsetHeight;
+  l = Math.max(0, Math.min(l, maxL));
+  t = Math.max(0, Math.min(t, maxT));
+  const lp = l / p.width * 100;
+  const tp = t / p.height * 100;
+  dragItem.el.style.left = lp + '%';
+  dragItem.el.style.top = tp + '%';
+  dragItem.left = lp;
+  dragItem.top = tp;
+});
+
+document.addEventListener('mouseup', () => { dragItem = null; });
+
 /* ────────────────────────────────  ПАНЕЛЬ СТРАНИЦ  ───────────────────────────── */
 const Pages   = editor.Pages;
 const selBox  = document.getElementById('pageSelect');
