@@ -13,15 +13,16 @@ _HTML = """<!doctype html>
   <meta charset="utf-8">
   <title>{{ title }}</title>
   <style>{{ css }}</style>
-</head><body>
+</head><body{{ body_attr }}>
 {{ html|safe }}
 </body></html>"""
 
-def _render(page: ProjectPage) -> bytes:
+def _render(page: ProjectPage, config: dict | None = None) -> bytes:
     """Собрать полноценную HTML‑страницу из данных страницы."""
 
     tpl = Template(_HTML)
     pdata = page.data or {}
+    cfg = config or {}
 
     if isinstance(pdata, str):
         try:
@@ -31,11 +32,26 @@ def _render(page: ProjectPage) -> bytes:
 
     html = ""
     css = ""
+    style = ""
     if isinstance(pdata, dict):
         html = pdata.get("html") or pdata.get("gjs-html") or ""
         css = pdata.get("css") or pdata.get("gjs-css") or ""
+        style = pdata.get("style") or ""
 
-    return tpl.render(title=page.name, html=html, css=css).encode()
+    if style:
+        css = f"{css}\n{style}" if css else style
+
+    body_style = []
+    if isinstance(cfg, dict):
+        bg = cfg.get("bgColor")
+        if bg:
+            body_style.append(f"background:{bg}")
+        if cfg.get("style"):
+            css = f"{css}\n{cfg.get('style')}" if css else cfg.get('style')
+
+    body_attr = f" style=\"{' ; '.join(body_style)}\"" if body_style else ""
+
+    return tpl.render(title=page.name, html=html, css=css, body_attr=body_attr).encode()
 
 def build_zip(project: Project, db: Session) -> str:
     """Создать tmp-zip и вернуть его путь.
@@ -72,8 +88,9 @@ def build_zip(project: Project, db: Session) -> str:
     os.close(tmp_fd)                    # zipfile сам будет писать
 
     with zipfile.ZipFile(tmp_name, "w", zipfile.ZIP_DEFLATED) as zf:
+        cfg = project.data.get("config") if isinstance(project.data, dict) else {}
         for pg in pages:
-            html_bytes = _render(pg)
+            html_bytes = _render(pg, cfg)
             fname = ("index" if pg.name == "index" else pg.name) + ".html"
             zf.writestr(fname, html_bytes)
 
