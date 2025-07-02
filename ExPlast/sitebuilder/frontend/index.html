@@ -20,6 +20,7 @@
     <button id="btnLoad"><i class="fa fa-folder-open"></i><span> Загрузить</span></button>
     <button id="btnSave"><i class="fa fa-floppy-disk"></i><span> Сохранить</span></button>
     <button id="btnExport"><i class="fa fa-file-export"></i><span> Экспорт</span></button>
+    <button id="btnConfig"><i class="fa fa-gear"></i><span> Настройки</span></button>
 
     <!-- панель страниц -->
     <div id="pagesBar">
@@ -27,6 +28,12 @@
       <button id="pageAdd"  title="Новая страница">＋</button>
       <button id="pageDel"  title="Удалить страницу">🗑</button>
     </div>
+  </div>
+
+  <div id="configPanel" hidden>
+    <label>Название: <input type="text" id="cfgName"></label>
+    <label>Цвет фона: <input type="color" id="cfgBg"></label>
+    <label>Шаг сетки: <input type="number" id="cfgGrid" min="1"></label>
   </div>
 
   <div id="canvas"></div>

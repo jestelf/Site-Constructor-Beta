@@ -142,3 +142,20 @@ html,body{
   background:#4b86c2;
   color:#fff;
 }
+
+/* панель конфигурации */
+#configPanel{
+  position:absolute;
+  left:50%;
+  top:80px;
+  transform:translateX(-50%);
+  background:#fff;
+  color:#000;
+  border:1px solid #555;
+  border-radius:8px;
+  padding:10px;
+  box-shadow:0 2px 8px rgba(0,0,0,.25);
+  z-index:10000;
+}
+#configPanel[hidden]{display:none;}
+#configPanel label{display:block;margin:4px 0;}

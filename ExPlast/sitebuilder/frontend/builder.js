@@ -128,7 +128,12 @@ anchorBottom?.addEventListener('change', () => toggleAnchor('Bottom'));
 
 class Builder {
   constructor() {
-    this.project = { id: null, name: '', pages: { index: { html: '' } } };
+    this.project = {
+      id: null,
+      name: '',
+      pages: { index: { html: '' } },
+      config: { bgColor: '#fafafa', grid: 20 }
+    };
     this.pages = ['index'];
     this.current = 'index';
     this.selected = null;
@@ -141,6 +146,7 @@ class Builder {
     this.btnLoad     = document.getElementById('btnLoad');
     this.btnSave     = document.getElementById('btnSave');
     this.btnExport   = document.getElementById('btnExport');
+    this.btnConfig   = document.getElementById('btnConfig');
     this.pageSelect  = document.getElementById('pageSelect');
     this.pageAdd     = document.getElementById('pageAdd');
     this.pageDel     = document.getElementById('pageDel');
@@ -148,11 +154,16 @@ class Builder {
     this.layerUp     = document.getElementById('layerUp');
     this.layerDown   = document.getElementById('layerDown');
     this.layerToggle = document.getElementById('layerToggle');
+    this.configPanel = document.getElementById('configPanel');
+    this.cfgName     = document.getElementById('cfgName');
+    this.cfgBg       = document.getElementById('cfgBg');
+    this.cfgGrid     = document.getElementById('cfgGrid');
 
     this.btnCreate.onclick  = () => this.createProject();
     this.btnLoad.onclick    = () => this.loadProject();
     this.btnSave.onclick    = () => this.saveProject();
     this.btnExport.onclick  = () => this.exportProject();
+    this.btnConfig.onclick  = () => this.toggleConfig();
     this.pageSelect.onchange = () => this.switchPage(this.pageSelect.value);
     this.pageAdd.onclick    = () => this.addPage();
     this.pageDel.onclick    = () => this.deletePage();
@@ -171,6 +182,7 @@ class Builder {
 
     this.updateSelect();
     this.switchPage('index');
+    this.applyConfig();
 
     document.addEventListener('keydown', e => {
       if (e.key === 'Delete' && this.selected) {
@@ -211,10 +223,16 @@ class Builder {
   async createProject() {
     const name = prompt('Название проекта', 'Сайт');
     if (!name) return;
-    this.project = { id: null, name, pages: { index: { html: '' } } };
+    this.project = {
+      id: null,
+      name,
+      pages: { index: { html: '' } },
+      config: { bgColor: '#fafafa', grid: 20 }
+    };
     this.pages = ['index'];
     this.updateSelect();
     this.switchPage('index');
+    this.applyConfig();
   }
 
   async loadProject() {
@@ -226,10 +244,12 @@ class Builder {
         id: pr.id,
         name: pr.name,
         pages: pr.data.pages || { index: { html: '' } },
+        config: pr.data.config || { bgColor: '#fafafa', grid: 20 }
       };
       this.pages = Object.keys(this.project.pages);
       this.updateSelect();
       this.switchPage(this.pages[0]);
+      this.applyConfig();
       } catch { alert('Нет проекта'); }
   }
 
@@ -241,13 +261,13 @@ class Builder {
     if (!this.project.id) {
       const res = await api('POST', '/projects/', {
         name: this.project.name,
-        data: { pages: this.project.pages },
+        data: { pages: this.project.pages, config: this.project.config },
       });
       this.project.id = res.id;
     } else {
       await api('PUT', `/projects/${this.project.id}`, {
         name: this.project.name,
-        data: { pages: this.project.pages },
+        data: { pages: this.project.pages, config: this.project.config },
       });
     }
     alert('Сохранено');
@@ -306,6 +326,31 @@ class Builder {
       }
     }
     this.updateLayers();
+  }
+
+  applyConfig() {
+    if (!this.project.config) {
+      this.project.config = { bgColor: '#fafafa', grid: 20 };
+    }
+    if (this.canvas) {
+      this.canvas.style.background = this.project.config.bgColor || '#fafafa';
+    }
+  }
+
+  async toggleConfig() {
+    if (this.configPanel.hidden) {
+      this.cfgName.value = this.project.name;
+      this.cfgBg.value = this.project.config.bgColor;
+      this.cfgGrid.value = this.project.config.grid;
+      this.configPanel.hidden = false;
+    } else {
+      this.project.name = this.cfgName.value;
+      this.project.config.bgColor = this.cfgBg.value;
+      this.project.config.grid = parseInt(this.cfgGrid.value) || 0;
+      this.applyConfig();
+      this.configPanel.hidden = true;
+      await this.saveProject();
+    }
   }
 
   moveLayer(delta) {
