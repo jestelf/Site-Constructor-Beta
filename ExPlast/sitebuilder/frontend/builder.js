@@ -93,16 +93,16 @@ function addBlock(type) {
   let html = '';
   switch (type) {
     case 'text':
-      html = '<div class="draggable" contenteditable="true" style="left:20px;top:20px;">Текст</div>';
+      html = '<div class="draggable block-text" contenteditable="true" style="left:20px;top:20px;">Текст</div>';
       break;
     case 'image':
-      html = '<img class="draggable" style="left:20px;top:20px;" src="https://via.placeholder.com/150">';
+      html = '<img class="draggable block-image" style="left:20px;top:20px;" src="https://via.placeholder.com/150">';
       break;
     case 'header':
-      html = '<h1 class="draggable" contenteditable="true" style="left:20px;top:20px;">Заголовок</h1>';
+      html = '<h1 class="draggable block-text" contenteditable="true" style="left:20px;top:20px;">Заголовок</h1>';
       break;
     case 'button':
-      html = '<a class="draggable" contenteditable="true" href="#" style="left:20px;top:20px;display:inline-block;padding:4px 8px;background:#4b86c2;color:#fff;border-radius:4px;">Кнопка</a>';
+      html = '<a class="draggable block-button" href="#" style="left:20px;top:20px;">Кнопка</a>';
       break;
   }
   if (html && builder.canvas) {
