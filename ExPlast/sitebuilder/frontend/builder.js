@@ -71,6 +71,7 @@ class Builder {
     this.project = { id: null, name: '', pages: { index: { html: '' } } };
     this.pages = ['index'];
     this.current = 'index';
+    this.selected = null;
   }
 
   init() {
@@ -90,6 +91,15 @@ class Builder {
     this.pageSelect.onchange = () => this.switchPage(this.pageSelect.value);
     this.pageAdd.onclick    = () => this.addPage();
     this.pageDel.onclick    = () => this.deletePage();
+
+    this.canvas.addEventListener('click', e => {
+      const el = e.target.closest('.draggable');
+      if (el) {
+        this.selectElement(el);
+      } else {
+        this.selectElement(null);
+      }
+    });
 
     this.updateSelect();
     this.switchPage('index');
@@ -193,6 +203,33 @@ class Builder {
     this.current = id;
     this.pageSelect.value = id;
     this.canvas.innerHTML = this.project.pages[id].html;
+  }
+
+  selectElement(el) {
+    if (this.selected) this.selected.classList.remove('selected');
+    this.selected = el;
+    if (!el) {
+      bar?.setAttribute('hidden', '');
+      return;
+    }
+    el.classList.add('selected');
+    const r = el.getBoundingClientRect();
+    bar.style.left = r.right + 5 + 'px';
+    bar.style.top  = r.top + 'px';
+    bar?.removeAttribute('hidden');
+    if (pick) {
+      const rgb = getComputedStyle(el).color;
+      const nums = rgb.match(/\d+/g);
+      let hex = '#000000';
+      if (nums) {
+        hex = '#' + nums.slice(0, 3).map(x => (+x).toString(16).padStart(2, '0')).join('');
+      }
+      pick.value = el.dataset.color || hex;
+    }
+    const right = document.getElementById('anchorRight');
+    const bottom = document.getElementById('anchorBottom');
+    if (right) right.checked = el.dataset.anchorRight === '1';
+    if (bottom) bottom.checked = el.dataset.anchorBottom === '1';
   }
 }
 
