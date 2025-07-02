@@ -79,42 +79,17 @@ const btnDel  = document.getElementById('pageDel');
 const gridToggle = document.getElementById('gridToggle');
 const gridInput  = document.getElementById('gridStep');
 const gjsEl      = document.getElementById('gjs');
-
-let   gridSize   = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--grid-size')) || 20;
-
-function canvasBody(){
-  return editor.Canvas.getFrameEl().contentDocument.body;
-}
+let   gridSize   = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--grid-size'))||20;
 
 function applyGrid(){
-  document.documentElement.style.setProperty('--grid-size', gridSize + 'px');
-  const body = canvasBody();
-  body.style.setProperty('--grid-size', gridSize + 'px');
-  gjsEl.classList.toggle('grid-bg', gridToggle.checked);
-  body.classList.toggle('grid-bg', gridToggle.checked);
-
+  document.documentElement.style.setProperty('--grid-size', gridSize+'px');
+  gjsEl.classList.toggle('show-grid', gridToggle.checked);
 }
 
 gridInput.value = gridSize;
 gridToggle.onchange = applyGrid;
 gridInput.onchange  = e=>{ gridSize=parseInt(e.target.value)||20; applyGrid(); };
 applyGrid();
-
-editor.on('canvas:load', () => {
-  const doc = editor.Canvas.getFrameEl().contentDocument;
-  const style = doc.createElement('style');
-  style.textContent = `
-    .grid-bg{
-      background-image:
-        linear-gradient(to right, rgba(0,0,0,.07) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(0,0,0,.07) 1px, transparent 1px);
-      background-size:var(--grid-size) var(--grid-size);
-    }
-  `;
-  doc.head.appendChild(style);
-  doc.documentElement.style.setProperty('--grid-size', gridSize + 'px');
-  applyGrid();
-});
 
 function fillSelect(){
   selBox.innerHTML='';
