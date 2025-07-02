@@ -208,6 +208,7 @@ class Builder {
     this.undoStack = [];
     this.redoStack = [];
     this.clipboard = null;
+    this.theme = 'light';
   }
 
   setupDraggables() {
@@ -240,6 +241,10 @@ class Builder {
     this.propH       = document.getElementById('propHeight');
     this.propFont    = document.getElementById('propFont');
     this.propBg      = document.getElementById('propBg');
+    this.btnTheme    = document.getElementById('btnTheme');
+
+    this.theme = localStorage.getItem('theme') || 'light';
+    this.applyTheme(this.theme);
 
     if (this.propW)   this.propW.oninput   = () => this.changeProps();
     if (this.propH)   this.propH.oninput   = () => this.changeProps();
@@ -255,6 +260,7 @@ class Builder {
     this.btnSave.onclick    = () => this.saveProject();
     this.btnExport.onclick  = () => this.exportProject();
     this.btnConfig.onclick  = () => this.toggleConfig();
+    if (this.btnTheme) this.btnTheme.onclick = () => this.toggleTheme();
     this.pageSelect.onchange = () => this.switchPage(this.pageSelect.value);
     this.pageAdd.onclick    = () => this.addPage();
     this.pageDel.onclick    = () => this.deletePage();
@@ -465,6 +471,20 @@ class Builder {
         }
       }
     }
+  }
+
+  applyTheme(theme) {
+    this.theme = theme;
+    const root = document.documentElement;
+    root.classList.remove('theme-dark', 'theme-light');
+    root.classList.add('theme-' + theme);
+    if (this.btnTheme) this.btnTheme.textContent = theme === 'dark' ? '☀' : '🌙';
+    localStorage.setItem('theme', theme);
+  }
+
+  toggleTheme() {
+    const next = this.theme === 'dark' ? 'light' : 'dark';
+    this.applyTheme(next);
   }
 
   async toggleConfig() {
