@@ -153,12 +153,12 @@ document.addEventListener('click', e => {
   const el = e.target.closest('.draggable');
   if (el && builder.canvas.contains(el)) {
     selectedItem = el;
-    bar.hidden = false;
+    bar.classList.add('open');
     if (anchorRight) anchorRight.checked = !!el.dataset.anchorRight;
     if (anchorBottom) anchorBottom.checked = !!el.dataset.anchorBottom;
   } else {
     selectedItem = null;
-    bar.hidden = true;
+    bar.classList.remove('open');
   }
 });
 
@@ -297,7 +297,7 @@ class Builder {
       } else if (e.key === 'Delete' && this.selected) {
         this.selected.remove();
         this.selected = null;
-        if (bar) bar.hidden = true;
+        if (bar) bar.classList.remove('open');
         this.updateLayers();
         this.saveState();
       }
@@ -460,18 +460,18 @@ class Builder {
   }
 
   async toggleConfig() {
-    if (this.configPanel.hidden) {
-      this.cfgName.value = this.project.name;
-      this.cfgBg.value = this.project.config.bgColor;
-      this.cfgGrid.value = this.project.config.grid;
-      this.configPanel.hidden = false;
-    } else {
+    if (this.configPanel.classList.contains('open')) {
       this.project.name = this.cfgName.value;
       this.project.config.bgColor = this.cfgBg.value;
       this.project.config.grid = parseInt(this.cfgGrid.value) || 0;
       this.applyConfig();
-      this.configPanel.hidden = true;
+      this.configPanel.classList.remove('open');
       await this.saveProject();
+    } else {
+      this.cfgName.value = this.project.name;
+      this.cfgBg.value = this.project.config.bgColor;
+      this.cfgGrid.value = this.project.config.grid;
+      this.configPanel.classList.add('open');
     }
   }
 
@@ -599,7 +599,7 @@ class Builder {
     if (this.selected) this.selected.classList.remove('selected');
     this.selected = el;
     if (!el) {
-      bar?.setAttribute('hidden', '');
+      bar?.classList.remove('open');
       if (this.propW) this.propW.value = '';
       if (this.propH) this.propH.value = '';
       if (this.propFont) this.propFont.value = '';
@@ -611,7 +611,7 @@ class Builder {
     const r = el.getBoundingClientRect();
     bar.style.left = r.right + 5 + 'px';
     bar.style.top  = r.top + 'px';
-    bar?.removeAttribute('hidden');
+    bar?.classList.add('open');
     if (pick) {
       const rgb = getComputedStyle(el).color;
       const nums = rgb.match(/\d+/g);
