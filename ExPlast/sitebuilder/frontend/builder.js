@@ -345,6 +345,7 @@ class Builder{
     const id = await chooseId('ID проекта для загрузки:');
     if(!id) return;
     curPid = id;
+    this.projectId = id;
     try{
       const pr = await api('GET',`/projects/${id}`);
       editor.loadProjectData(pr.data || {pages: []});
@@ -356,11 +357,16 @@ class Builder{
   }
 
   async saveProject(){
-    if(!curPid){
+    let pid = this.projectId;
+    if(!pid){
       const id = await chooseId('Сохранить в проект ID:');
-      if(!id) return; curPid=id;
+      if(!id) return;
+      pid = id;
+      this.projectId = id;
+      curPid = id;
     }
-    await saveAll(curPid);
+    const data = editor.getProjectData();
+    await api('PUT', `/projects/${pid}`, {name:'Сайт '+pid, data});
     alert('Сохранено');
   }
 
