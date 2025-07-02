@@ -76,6 +76,20 @@ const Pages   = editor.Pages;
 const selBox  = document.getElementById('pageSelect');
 const btnAdd  = document.getElementById('pageAdd');
 const btnDel  = document.getElementById('pageDel');
+const gridToggle = document.getElementById('gridToggle');
+const gridInput  = document.getElementById('gridStep');
+const gjsEl      = document.getElementById('gjs');
+let   gridSize   = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--grid-size'))||20;
+
+function applyGrid(){
+  document.documentElement.style.setProperty('--grid-size', gridSize+'px');
+  gjsEl.classList.toggle('show-grid', gridToggle.checked);
+}
+
+gridInput.value = gridSize;
+gridToggle.onchange = applyGrid;
+gridInput.onchange  = e=>{ gridSize=parseInt(e.target.value)||20; applyGrid(); };
+applyGrid();
 
 function fillSelect(){
   selBox.innerHTML='';
@@ -178,8 +192,12 @@ function normalizePos(sel){
   const cw=frame.offsetWidth,ch=frame.offsetHeight;
   const fr=frame.getBoundingClientRect();
   const r=sel.view.el.getBoundingClientRect();
-  const left=r.left-fr.left,top=r.top-fr.top;
+  let left=r.left-fr.left,top=r.top-fr.top;
   const w=r.width,h=r.height;
+  if(gridToggle.checked){
+    left=Math.round(left/gridSize)*gridSize;
+    top =Math.round(top /gridSize)*gridSize;
+  }
   const attr=sel.getAttributes();
   const st={width:(w/cw*100)+'%',height:(h/ch*100)+'%'};
   if(attr['data-anchor-right']){
