@@ -3,6 +3,7 @@ from typing import Optional, Any
 from sqlalchemy.orm import Session
 
 from . import models, schemas
+from sqlalchemy.orm import selectinload
 
 
 # ─── helpers ──────────────────────────────────────────────────
@@ -37,15 +38,20 @@ def create_project(db: Session, pr: schemas.ProjectCreate):
     db.add(db_pr)
     db.commit()
     db.refresh(db_pr)
+    db.expunge(db_pr)
     return _attach_dict(db_pr)
 
 
 def get_project(db: Session, pid: int):
-    pr = db.query(models.Project).filter_by(id=pid).first()
+    pr = db.query(models.Project).options(selectinload(models.Project.pages)).filter_by(id=pid).first()
     if not pr:
         return None
+    pages = list(pr.pages)
+    db.expunge(pr)
+    for pg in pages:
+        db.expunge(pg)
     _attach_dict(pr)
-    pr.pages = [_attach_page(pg) for pg in pr.pages]
+    pr.pages = [_attach_page(pg) for pg in pages]
     return pr
 
 
@@ -59,15 +65,17 @@ def update_project(db: Session, pid: int, pr: schemas.ProjectUpdate):
         db_pr.data = _dumps(pr.data)
     db.commit()
     db.refresh(db_pr)
+    db.expunge(db_pr)
     return _attach_dict(db_pr)
 
 
 def list_projects(db: Session):
     """Вернуть список всех проектов."""
-    return [
-        _attach_dict(pr)
-        for pr in db.query(models.Project).order_by(models.Project.id).all()
-    ]
+    res = []
+    for pr in db.query(models.Project).order_by(models.Project.id).all():
+        db.expunge(pr)
+        res.append(_attach_dict(pr))
+    return res
 
 
 def delete_project(db: Session, pid: int) -> bool:
@@ -89,24 +97,28 @@ def create_page(db: Session, pid: int, page: schemas.PageCreate):
     db.add(db_pg)
     db.commit()
     db.refresh(db_pg)
+    db.expunge(db_pg)
     res = _attach_page(db_pg)
     res.title = page.title or res.title
     return res
 
 
 def list_pages(db: Session, pid: int):
-    return [
-        _attach_page(pg)
-        for pg in db.query(models.ProjectPage)
-        .filter_by(project_id=pid).all()
-    ]
+    res = []
+    for pg in db.query(models.ProjectPage).filter_by(project_id=pid).all():
+        db.expunge(pg)
+        res.append(_attach_page(pg))
+    return res
 
 
 def get_page(db: Session, pid: int, pgid: int):
-    pg = (db.query(models.ProjectPage)
-            .filter_by(project_id=pid, id=pgid).first())
+    pg = (
+        db.query(models.ProjectPage)
+        .filter_by(project_id=pid, id=pgid).first()
+    )
     if not pg:
         return None
+    db.expunge(pg)
     return _attach_page(pg)
 
 
@@ -124,6 +136,7 @@ def update_page(db: Session, pid: int, pgid: int, page: schemas.PageUpdate):
     # title храним только в ответе
     db.commit()
     db.refresh(db_pg)
+    db.expunge(db_pg)
     res = _attach_page(db_pg)
     if page.title is not None:
         res.title = page.title
