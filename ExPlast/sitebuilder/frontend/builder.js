@@ -317,19 +317,23 @@ class Builder{
     this.pageAdd    = document.getElementById('pageAdd');
     this.pageDel    = document.getElementById('pageDel');
 
+    this.pages   = [];
+    this.current = null;
+
     this.btnCreate.onclick = () => this.createProject();
     this.btnLoad.onclick   = () => this.loadProject();
     this.btnSave.onclick   = () => this.saveProject();
     this.btnExport.onclick = () => this.exportProject();
 
-    this.pageSelect.onchange = () => Pages.select(this.pageSelect.value);
+    this.pageSelect.onchange = () => this.switchPage(this.pageSelect.value);
     this.pageAdd.onclick     = () => this.addPage();
     this.pageDel.onclick     = () => this.deletePage();
 
     if(!Pages.getAll().length){
       Pages.add({id:'index',name:'index',component:'<h1>Главная</h1>'});
-      Pages.select('index');
     }
+    this.pages = Pages.getAll().map(p=>({id:p.getId(),name:p.getName()}));
+    this.switchPage(this.pages[0].id);
     fillSelect();
     isSaved = false;
   }
@@ -397,20 +401,38 @@ class Builder{
   addPage(){
     const id = prompt('Имя новой страницы (без .html):','about');
     if(!id) return;
-    if(Pages.get(id)){alert('Уже есть');return;}
+    if(this.pages.find(p=>p.id===id)){alert('Уже есть');return;}
     Pages.add({id,name:id,component:'<h1>'+id+'</h1>'});
-    Pages.select(id);
+    this.pages.push({id,name:id});
+    const o=document.createElement('option');
+    o.value=id; o.textContent=id;
+    this.pageSelect.appendChild(o);
+    this.switchPage(id);
     isSaved = false;
   }
 
   deletePage(){
-    const cur=Pages.getSelected();
-    if(!cur){alert('Не выбрано');return;}
-    if(cur.getId()==='index'){alert('index удалять нельзя');return;}
-    if(confirm('Удалить '+cur.getName()+'?')){
+    if(this.pages.length<=1){alert('Последняя страница');return;}
+    const id=this.pageSelect.value;
+    const cur=Pages.get(id);
+    if(!cur) return;
+    if(confirm('Удалить '+id+'?')){
       Pages.remove(cur);
+      const idx=this.pages.findIndex(p=>p.id===id);
+      if(idx>=0){
+        this.pages.splice(idx,1);
+        this.pageSelect.remove(idx);
+      }
+      const next=this.pages[idx]||this.pages[idx-1];
+      this.switchPage(next.id);
       isSaved = false;
     }
+  }
+
+  switchPage(id){
+    Pages.select(id);
+    this.pageSelect.value=id;
+    this.current=id;
   }
 }
 
