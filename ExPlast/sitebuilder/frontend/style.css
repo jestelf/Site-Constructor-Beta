@@ -17,6 +17,9 @@ html,body{
   cursor:move;
   box-sizing:border-box;
 }
+.selected{
+  outline:2px dashed #4b86c2;
+}
 
 .toolbar-btn{
   border:none;
