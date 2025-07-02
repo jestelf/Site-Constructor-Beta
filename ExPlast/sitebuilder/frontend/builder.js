@@ -52,7 +52,12 @@ function addBlock(type) {
       html = '<a class="draggable" contenteditable="true" href="#" style="left:20px;top:20px;display:inline-block;padding:4px 8px;background:#4b86c2;color:#fff;border-radius:4px;">Кнопка</a>';
       break;
   }
-  if (html && builder.canvas) builder.canvas.insertAdjacentHTML('beforeend', html);
+  if (html && builder.canvas) {
+    builder.canvas.insertAdjacentHTML('beforeend', html);
+    const el = builder.canvas.lastElementChild;
+    el.dataset.layerId = ++builder.layerId;
+    builder.updateLayers();
+  }
 }
 window.addBlock = addBlock;
 
@@ -127,6 +132,7 @@ class Builder {
     this.pages = ['index'];
     this.current = 'index';
     this.selected = null;
+    this.layerId = 0;
   }
 
   init() {
@@ -138,6 +144,10 @@ class Builder {
     this.pageSelect  = document.getElementById('pageSelect');
     this.pageAdd     = document.getElementById('pageAdd');
     this.pageDel     = document.getElementById('pageDel');
+    this.layersList  = document.getElementById('layersList');
+    this.layerUp     = document.getElementById('layerUp');
+    this.layerDown   = document.getElementById('layerDown');
+    this.layerToggle = document.getElementById('layerToggle');
 
     this.btnCreate.onclick  = () => this.createProject();
     this.btnLoad.onclick    = () => this.loadProject();
@@ -146,6 +156,9 @@ class Builder {
     this.pageSelect.onchange = () => this.switchPage(this.pageSelect.value);
     this.pageAdd.onclick    = () => this.addPage();
     this.pageDel.onclick    = () => this.deletePage();
+    this.layerUp.onclick    = () => this.moveLayer(1);
+    this.layerDown.onclick  = () => this.moveLayer(-1);
+    this.layerToggle.onclick= () => this.toggleLayer();
 
     this.canvas.addEventListener('click', e => {
       const el = e.target.closest('.draggable');
@@ -164,6 +177,7 @@ class Builder {
         this.selected.remove();
         this.selected = null;
         if (bar) bar.hidden = true;
+        this.updateLayers();
       }
     });
   }
@@ -175,6 +189,22 @@ class Builder {
       o.value = id;
       o.textContent = id;
       this.pageSelect.appendChild(o);
+    }
+  }
+
+  updateLayers() {
+    if (!this.layersList) return;
+    this.layersList.innerHTML = '';
+    const els = Array.from(this.canvas.querySelectorAll('.draggable'));
+    els.sort((a, b) => (parseInt(b.style.zIndex || '0') - parseInt(a.style.zIndex || '0')));
+    for (const el of els) {
+      if (!el.dataset.layerId) el.dataset.layerId = ++this.layerId;
+      const li = document.createElement('li');
+      li.textContent = el.tagName.toLowerCase() + ' ' + el.dataset.layerId;
+      li.dataset.id = el.dataset.layerId;
+      if (el === this.selected) li.classList.add('selected');
+      li.onclick = () => { this.selectElement(el); this.updateLayers(); };
+      this.layersList.appendChild(li);
     }
   }
 
@@ -200,7 +230,7 @@ class Builder {
       this.pages = Object.keys(this.project.pages);
       this.updateSelect();
       this.switchPage(this.pages[0]);
-    } catch { alert('Нет проекта'); }
+      } catch { alert('Нет проекта'); }
   }
 
   async saveProject() {
@@ -266,6 +296,31 @@ class Builder {
     this.current = id;
     this.pageSelect.value = id;
     this.canvas.innerHTML = this.project.pages[id].html;
+    this.layerId = 0;
+    for (const el of this.canvas.querySelectorAll('.draggable')) {
+      const lid = parseInt(el.dataset.layerId);
+      if (lid) {
+        this.layerId = Math.max(this.layerId, lid);
+      } else {
+        el.dataset.layerId = ++this.layerId;
+      }
+    }
+    this.updateLayers();
+  }
+
+  moveLayer(delta) {
+    if (!this.selected) return;
+    const z = parseInt(this.selected.style.zIndex || '0') + delta;
+    this.selected.style.zIndex = z;
+    this.updateLayers();
+  }
+
+  toggleLayer() {
+    if (!this.selected) return;
+    this.selected.hidden = !this.selected.hidden;
+    const icon = this.layerToggle.querySelector('i');
+    if (icon) icon.className = this.selected.hidden ? 'fa fa-eye-slash' : 'fa fa-eye';
+    this.updateLayers();
   }
 
   selectElement(el) {
@@ -273,6 +328,7 @@ class Builder {
     this.selected = el;
     if (!el) {
       bar?.setAttribute('hidden', '');
+      this.updateLayers();
       return;
     }
     el.classList.add('selected');
@@ -293,6 +349,7 @@ class Builder {
     const bottom = document.getElementById('anchorBottom');
     if (right) right.checked = el.dataset.anchorRight === '1';
     if (bottom) bottom.checked = el.dataset.anchorBottom === '1';
+    this.updateLayers();
   }
 }
 

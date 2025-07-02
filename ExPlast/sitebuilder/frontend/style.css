@@ -130,3 +130,15 @@ html,body{
   left:10px;
   right:auto;
 }
+
+/* панель слоёв */
+#layersPanel{
+  left:120px;
+  right:auto;
+  width:140px;
+}
+
+#layersList li.selected{
+  background:#4b86c2;
+  color:#fff;
+}
