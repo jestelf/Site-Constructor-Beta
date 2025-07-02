@@ -192,11 +192,7 @@ editor.BlockManager.add('int-link',{
 const bar=document.getElementById('inlineToolbar'),
       pick=document.getElementById('colorPick'),
       chkRight=document.getElementById('anchorRight'),
-      chkBottom=document.getElementById('anchorBottom'),
-      chkCenterX=document.getElementById('anchorCenterX'),
-      chkCenterY=document.getElementById('anchorCenterY'),
-      chkStretchW=document.getElementById('stretchWidth'),
-      chkStretchH=document.getElementById('stretchHeight');
+      chkBottom=document.getElementById('anchorBottom');
 
 const panel=editor.Panels.addPanel({id:'inline',el:bar,visible:false});
 
@@ -227,10 +223,6 @@ editor.on('component:selected', sel=>{
   imgBtn&&imgBtn.set('visible',sel.get('type')==='image');
   chkRight.checked=!!sel.getAttributes()['data-anchor-right'];
   chkBottom.checked=!!sel.getAttributes()['data-anchor-bottom'];
-  chkCenterX.checked=!!sel.getAttributes()['data-anchor-center-x'];
-  chkCenterY.checked=!!sel.getAttributes()['data-anchor-center-y'];
-  chkStretchW.checked=!!sel.getAttributes()['data-stretch-width'];
-  chkStretchH.checked=!!sel.getAttributes()['data-stretch-height'];
 });
 
 pick.oninput=e=>{const s=editor.getSelected();s&&s.addStyle({color:e.target.value});};
@@ -244,43 +236,20 @@ function normalizePos(sel){
   const w=r.width,h=r.height;
   const attr=sel.getAttributes();
   const st={width:(w/cw*100)+'%',height:(h/ch*100)+'%'};
-
-  let tr='';
-  if(attr['data-stretch-width']){
-    st.left='0%';
-    st.right='0%';
-    st.width='100%';
-  }else if(attr['data-anchor-center-x']){
-    st.left=((left+w/2)/cw*100)+'%';
-    st.right='';
-    tr+=' translateX(-50%)';
-  }else if(attr['data-anchor-right']){
+  if(attr['data-anchor-right']){
     st.right=((cw-(left+w))/cw*100)+'%';
     st.left='';
   }else{
     st.left=(left/cw*100)+'%';
     st.right='';
   }
-
-  if(attr['data-stretch-height']){
-    st.top='0%';
-    st.bottom='0%';
-    st.height='100%';
-  }else if(attr['data-anchor-center-y']){
-    st.top=((top+h/2)/ch*100)+'%';
-    st.bottom='';
-    tr+=' translateY(-50%)';
-  }else if(attr['data-anchor-bottom']){
+  if(attr['data-anchor-bottom']){
     st.bottom=((ch-(top+h))/ch*100)+'%';
     st.top='';
   }else{
     st.top=(top/ch*100)+'%';
     st.bottom='';
   }
-
-  st.transform=tr.trim();
-  if(!st.transform) delete st.transform;
-
   sel.addStyle(st);
 }
 
@@ -298,46 +267,8 @@ chkBottom.onchange=e=>{
   normalizePos(s);
 };
 
-chkCenterX.onchange=e=>{
-  const s=editor.getSelected();if(!s)return;
-  if(e.target.checked) s.addAttributes({'data-anchor-center-x':'1'});
-  else s.removeAttributes('data-anchor-center-x');
-  normalizePos(s);
-};
-
-chkCenterY.onchange=e=>{
-  const s=editor.getSelected();if(!s)return;
-  if(e.target.checked) s.addAttributes({'data-anchor-center-y':'1'});
-  else s.removeAttributes('data-anchor-center-y');
-  normalizePos(s);
-};
-
-chkStretchW.onchange=e=>{
-  const s=editor.getSelected();if(!s)return;
-  if(e.target.checked) s.addAttributes({'data-stretch-width':'1'});
-  else s.removeAttributes('data-stretch-width');
-  normalizePos(s);
-};
-
-chkStretchH.onchange=e=>{
-  const s=editor.getSelected();if(!s)return;
-  if(e.target.checked) s.addAttributes({'data-stretch-height':'1'});
-  else s.removeAttributes('data-stretch-height');
-  normalizePos(s);
-};
-
 editor.on('component:drag:end', normalizePos);
 editor.on('component:resize:end', normalizePos);
-
-function normalizeAll(){
-  editor.getWrapper().find('*').forEach(c=>!c.is('wrapper')&&normalizePos(c));
-}
-
-editor.on('canvas:frame:load', ()=>{
-  const win = editor.Canvas.getFrameEl().contentWindow;
-  win.addEventListener('resize', normalizeAll);
-});
-editor.on('page', ()=> setTimeout(normalizeAll));
 
 /* ───────────────────────────  API helpers  ─────────────────────────── */
 async function api(m,p,b){
