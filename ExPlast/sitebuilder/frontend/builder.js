@@ -56,6 +56,16 @@ async function api(method, path, body) {
   return r.json();
 }
 
+// Мини-панель форматирования
+const bar = document.getElementById('inlineToolbar');
+const pick = document.getElementById('colorPick');
+
+if (pick) {
+  pick.oninput = e => document.execCommand('foreColor', false, e.target.value);
+}
+
+bar?.addEventListener('mousedown', e => e.stopPropagation());
+
 class Builder {
   constructor() {
     this.project = { id: null, name: '', pages: { index: { html: '' } } };
