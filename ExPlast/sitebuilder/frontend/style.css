@@ -21,6 +21,21 @@ html,body{
   outline:2px dashed #4b86c2;
 }
 
+.draggable .resize-handle{
+  position:absolute;
+  width:8px;
+  height:8px;
+  background:#fff;
+  border:1px solid #4b86c2;
+  box-sizing:border-box;
+  display:none;
+}
+.draggable.selected .resize-handle{display:block;}
+.resize-handle[data-dir="nw"]{left:-4px;top:-4px;cursor:nwse-resize;}
+.resize-handle[data-dir="ne"]{right:-4px;top:-4px;cursor:nesw-resize;}
+.resize-handle[data-dir="sw"]{left:-4px;bottom:-4px;cursor:nesw-resize;}
+.resize-handle[data-dir="se"]{right:-4px;bottom:-4px;cursor:nwse-resize;}
+
 .toolbar-btn{
   border:none;
   background:#4b86c2;

@@ -1,10 +1,24 @@
 // Простые обработчики перетаскивания элементов
 let dragItem = null, dx = 0, dy = 0, moved = false;
+let resizeItem = null, resizeDir = '', rx = 0, ry = 0, rw = 0, rh = 0, rl = 0, rt = 0;
 let selectedItem = null;
 const anchorRight = document.getElementById('anchorRight');
 const anchorBottom = document.getElementById('anchorBottom');
 
 document.addEventListener('mousedown', e => {
+  const handle = e.target.closest('.resize-handle');
+  if (handle) {
+    resizeItem = handle.parentElement;
+    resizeDir = handle.dataset.dir || '';
+    const p = resizeItem.parentElement.getBoundingClientRect();
+    const r = resizeItem.getBoundingClientRect();
+    rx = e.clientX;
+    ry = e.clientY;
+    rw = r.width; rh = r.height;
+    rl = r.left - p.left; rt = r.top - p.top;
+    e.preventDefault();
+    return;
+  }
   const el = e.target.closest('.draggable');
   if (!el) return;
   const r = el.getBoundingClientRect();
@@ -16,6 +30,35 @@ document.addEventListener('mousedown', e => {
 });
 
 document.addEventListener('mousemove', e => {
+  if (resizeItem) {
+    const p = resizeItem.parentElement.getBoundingClientRect();
+    let dx = e.clientX - rx;
+    let dy = e.clientY - ry;
+    let w = rw, h = rh, l = rl, t = rt;
+    if (resizeDir.includes('e')) w = rw + dx;
+    if (resizeDir.includes('s')) h = rh + dy;
+    if (resizeDir.includes('w')) { w = rw - dx; l = rl + dx; }
+    if (resizeDir.includes('n')) { h = rh - dy; t = rt + dy; }
+    w = Math.max(20, w); h = Math.max(20, h);
+    if (resizeItem.dataset.anchorRight) {
+      resizeItem.style.right = ((p.width - l - w) / p.width * 100) + '%';
+      resizeItem.style.left = '';
+    } else {
+      resizeItem.style.left = (l / p.width * 100) + '%';
+    }
+    if (resizeItem.dataset.anchorBottom) {
+      resizeItem.style.bottom = ((p.height - t - h) / p.height * 100) + '%';
+      resizeItem.style.top = '';
+    } else {
+      resizeItem.style.top = (t / p.height * 100) + '%';
+    }
+    resizeItem.style.width = w + 'px';
+    resizeItem.style.height = h + 'px';
+    resizeItem.dataset.w = w;
+    resizeItem.dataset.h = h;
+    return;
+  }
+
   if (!dragItem) return;
   moved = true;
   const p = dragItem.parentElement.getBoundingClientRect();
@@ -36,6 +79,11 @@ document.addEventListener('mousemove', e => {
 });
 
 document.addEventListener('mouseup', () => {
+  if (resizeItem) {
+    builder.saveState();
+    resizeItem = null;
+    return;
+  }
   if (dragItem && moved) builder.saveState();
   dragItem = null;
 });
@@ -61,11 +109,23 @@ function addBlock(type) {
     builder.canvas.insertAdjacentHTML('beforeend', html);
     const el = builder.canvas.lastElementChild;
     el.dataset.layerId = ++builder.layerId;
+    addResizeHandles(el);
     builder.updateLayers();
     builder.saveState();
   }
 }
 window.addBlock = addBlock;
+
+function addResizeHandles(el) {
+  if (!el) return;
+  if (el.querySelector('.resize-handle')) return;
+  for (const dir of ['nw','ne','sw','se']) {
+    const d = document.createElement('div');
+    d.className = 'resize-handle';
+    d.dataset.dir = dir;
+    el.appendChild(d);
+  }
+}
 
 // API helper
 async function api(method, path, body) {
@@ -150,6 +210,13 @@ class Builder {
     this.clipboard = null;
   }
 
+  setupDraggables() {
+    if (!this.canvas) return;
+    for (const el of this.canvas.querySelectorAll('.draggable')) {
+      addResizeHandles(el);
+    }
+  }
+
   init() {
     this.canvas      = document.getElementById('canvas');
     this.btnCreate   = document.getElementById('btnCreate');
@@ -201,6 +268,7 @@ class Builder {
 
     this.updateSelect();
     this.switchPage('index');
+    this.setupDraggables();
     this.applyConfig();
     this.saveState();
 
@@ -269,6 +337,7 @@ class Builder {
     this.pages = ['index'];
     this.updateSelect();
     this.switchPage('index');
+    this.setupDraggables();
     this.applyConfig();
   }
 
@@ -362,6 +431,7 @@ class Builder {
         el.dataset.layerId = ++this.layerId;
       }
     }
+    this.setupDraggables();
     this.updateLayers();
     this.saveState();
   }
@@ -459,6 +529,7 @@ class Builder {
         el.dataset.layerId = ++this.layerId;
       }
     }
+    this.setupDraggables();
     this.selectElement(null);
     this.updateLayers();
   }
@@ -477,6 +548,7 @@ class Builder {
         el.dataset.layerId = ++this.layerId;
       }
     }
+    this.setupDraggables();
     this.selectElement(null);
     this.updateLayers();
   }
@@ -503,6 +575,7 @@ class Builder {
     clone.style.left = (left + dx) + 'px';
     clone.style.top  = (top + dy) + 'px';
     this.canvas.appendChild(clone);
+    addResizeHandles(clone);
     this.selectElement(clone);
     this.updateLayers();
     this.saveState();
