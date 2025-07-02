@@ -347,9 +347,10 @@ class Builder{
   }
 
   async loadProject(){
-    const id = await chooseId('ID проекта для загрузки:');
+    const id = parseInt(prompt('ID проекта для загрузки:', this.projectId || '1'));
     if(!id) return;
     curPid = id;
+    this.projectId = id;
     try{
       const pr = await api('GET',`/projects/${id}`);
       editor.loadProjectData(pr.data || {pages: []});
@@ -358,15 +359,24 @@ class Builder{
         Pages.select('index');
       }
       isSaved = true;
+
+      this.projectId = id;
+      fillSelect();
+
     }catch{alert('Нет проекта');}
   }
 
   async saveProject(){
-    if(!curPid){
+    let pid = this.projectId;
+    if(!pid){
       const id = await chooseId('Сохранить в проект ID:');
-      if(!id) return; curPid=id;
+      if(!id) return;
+      pid = id;
+      this.projectId = id;
+      curPid = id;
     }
-    await saveAll(curPid);
+    const data = editor.getProjectData();
+    await api('PUT', `/projects/${pid}`, {name:'Сайт '+pid, data});
     alert('Сохранено');
     isSaved = true;
   }
