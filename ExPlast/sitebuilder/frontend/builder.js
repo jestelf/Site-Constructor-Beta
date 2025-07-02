@@ -262,6 +262,27 @@ chkBottom.onchange=e=>{
 editor.on('component:drag:end', normalizePos);
 editor.on('component:resize:end', normalizePos);
 
+/* ─────────────────────  добавление блоков  ───────────────────── */
+function addBlock(type){
+  let html='';
+  switch(type){
+    case 'text':
+      html='<div class="draggable" contenteditable="true" style="left:20px;top:20px;">Текст</div>';
+      break;
+    case 'image':
+      html='<img class="draggable" style="left:20px;top:20px;" src="https://via.placeholder.com/150">';
+      break;
+    case 'header':
+      html='<h1 class="draggable" contenteditable="true" style="left:20px;top:20px;">Заголовок</h1>';
+      break;
+    case 'button':
+      html='<a class="draggable" contenteditable="true" href="#" style="left:20px;top:20px;display:inline-block;padding:4px 8px;background:#4b86c2;color:#fff;border-radius:4px;">Кнопка</a>';
+      break;
+  }
+  if(html) editor.addComponents(html);
+}
+window.addBlock = addBlock;
+
 /* ───────────────────────────  API helpers  ─────────────────────────── */
 async function api(m,p,b){
   const r=await fetch(p,{method:m,headers:{'Content-Type':'application/json'},

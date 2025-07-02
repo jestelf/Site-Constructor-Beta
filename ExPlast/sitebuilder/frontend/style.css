@@ -121,3 +121,9 @@ html,body{
   padding:0;
   background:#fff;
 }
+
+/* левая панель блоков */
+#blocksBar{
+  left:10px;
+  right:auto;
+}
