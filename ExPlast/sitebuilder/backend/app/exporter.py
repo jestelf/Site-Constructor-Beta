@@ -18,16 +18,23 @@ _HTML = """<!doctype html>
 </body></html>"""
 
 def _render(page: ProjectPage) -> bytes:
-    """Собрать полноценную HTML-страницу из данных страницы."""
+    """Собрать полноценную HTML‑страницу из данных страницы."""
+
     tpl = Template(_HTML)
     pdata = page.data or {}
+
     if isinstance(pdata, str):
         try:
             pdata = json.loads(pdata)
         except Exception:
             pdata = {}
-    html = pdata.get("html", "")
-    css = pdata.get("css", "")
+
+    html = ""
+    css = ""
+    if isinstance(pdata, dict):
+        html = pdata.get("html") or pdata.get("gjs-html") or ""
+        css = pdata.get("css") or pdata.get("gjs-css") or ""
+
     return tpl.render(title=page.name, html=html, css=css).encode()
 
 def build_zip(project: Project, db: Session) -> str:
@@ -51,8 +58,12 @@ def build_zip(project: Project, db: Session) -> str:
             pages_dict.setdefault(pg.name, SimpleNamespace(name=pg.name, data=pdata))
 
     data_pages = project.data.get("pages") if isinstance(project.data, dict) else None
-    if data_pages:
+    if isinstance(data_pages, dict):
         for name, pdata in data_pages.items():
+            pages_dict[name] = SimpleNamespace(name=name, data=pdata)
+    elif isinstance(data_pages, list):
+        for idx, pdata in enumerate(data_pages, 1):
+            name = pdata.get("name") or f"page{idx}"
             pages_dict[name] = SimpleNamespace(name=name, data=pdata)
 
     pages = list(pages_dict.values())
