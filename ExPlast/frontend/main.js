@@ -71,8 +71,62 @@ const editor = grapesjs.init({
   storageManager:{autoload:false,autosave:false},
 });
 
-let gridSettings = {step:20, cols:12};
-applyGrid();
+let gridSettings = {step:20, cols:12}; // если это реально нужно
+
+/* ────────────────────────────────  Auto Layout ────────────────────────────── */
+const defType = editor.DomComponents.getType('default');
+if(defType){
+  const tr = defType.model.prototype.defaults.traits || [];
+  defType.model.prototype.defaults.traits = tr.concat([
+    {type:'select', name:'data-layout', label:'Auto Layout',
+      options:[
+        {value:'',      name:'Нет'},
+        {value:'row',   name:'Горизонтально'},
+        {value:'column',name:'Вертикально'}]},
+    {type:'number', name:'data-gap', label:'Отступ'},
+    {type:'select', name:'data-align', label:'Выравнивание',
+      options:[
+        {value:'start', name:'Начало'},
+        {value:'center',name:'Центр'},
+        {value:'end',   name:'Конец'}]}
+  ]);
+}
+
+function applyAutoLayout(frame){
+  const attr = frame.getAttributes();
+  const dir  = attr['data-layout'];
+  if(!dir) return;
+  const gap   = parseInt(attr['data-gap'])||0;
+  const align = attr['data-align']||'start';
+  const el = frame.view.el;
+  if(!el) return;
+  const fw=el.offsetWidth, fh=el.offsetHeight;
+  let x=0, y=0;
+  frame.components().forEach(c=>{
+    const e=c.view.el; if(!e) return;
+    const w=e.offsetWidth, h=e.offsetHeight;
+    let left=x, top=y;
+    if(dir==='row'){
+      if(align==='center') top=(fh-h)/2;
+      else if(align==='end') top=fh-h;
+      left=x; x+=w+gap;
+    }else{
+      if(align==='center') left=(fw-w)/2;
+      else if(align==='end') left=fw-w;
+      top=y; y+=h+gap;
+    }
+    c.addStyle({left:left+'px',top:top+'px'});
+    normalizePos(c);
+  });
+}
+
+editor.on('component:drag:end', cmp=>{const p=cmp.parent();p&&applyAutoLayout(p);});
+editor.on('component:resize:end', cmp=>{const p=cmp.parent();p&&applyAutoLayout(p);});
+editor.on('component:add', cmp=>{const p=cmp.parent();p&&applyAutoLayout(p);});
+editor.on('component:remove', cmp=>{const p=cmp.parent();p&&applyAutoLayout(p);});
+editor.on('component:update:data-layout component:update:data-gap component:update:data-align',
+           cmp=>applyAutoLayout(cmp));
+
 
 /* ────────────────────────────────  ПАНЕЛЬ СТРАНИЦ  ───────────────────────────── */
 const Pages   = editor.Pages;
@@ -137,17 +191,66 @@ editor.BlockManager.add('int-link',{
   ]}
 });
 
+/* компонент Frame */
+const domc = editor.DomComponents;
+domc.addType('frame',{
+  model:{
+    defaults:{
+      tagName:'div',
+      draggable:true,
+      droppable:true,
+      resizable:true,
+      attributes:{'data-width':'300','data-height':'200','data-grid':'20'},
+      traits:[
+        {type:'number',name:'data-width',label:'Ширина',changeProp:1},
+        {type:'number',name:'data-height',label:'Высота',changeProp:1},
+        {type:'number',name:'data-grid',label:'Сетка',changeProp:1},
+      ],
+      style:{
+        position:'relative',
+        width:'300px',
+        height:'200px',
+        'background-size':'20px 20px',
+        'background-image':'linear-gradient(#ddd 1px,transparent 1px),linear-gradient(90deg,#ddd 1px,transparent 1px)'
+      }
+    },
+    init(){
+      const up=()=>{
+        const a=this.getAttributes();
+        this.addStyle({width:a['data-width']+'px',height:a['data-height']+'px'});
+        const g=parseInt(a['data-grid']);
+        if(g){
+          this.addStyle({'background-size':`${g}px ${g}px`,'background-image':'linear-gradient(#ddd 1px,transparent 1px),linear-gradient(90deg,#ddd 1px,transparent 1px)'});
+        }else{
+          this.addStyle({'background-image':'none'});
+        }
+      };
+      this.on('change:attributes:data-width change:attributes:data-height change:attributes:data-grid',up);
+      up();
+    }
+  }
+});
+editor.BlockManager.add('frame',{label:'Frame',category:'Базовые',content:{type:'frame'}});
+
 /* ─────────────────────────────  МИНИ-ПАНЕЛЬ  ───────────────────────────── */
 const bar=document.getElementById('inlineToolbar'),
       pick=document.getElementById('colorPick'),
       chkRight=document.getElementById('anchorRight'),
       chkBottom=document.getElementById('anchorBottom'),
-      gridBtn=document.getElementById('gridBtn'),
-      gridModal=document.getElementById('gridModal'),
-      gridStepInp=document.getElementById('gridStep'),
-      gridColsInp=document.getElementById('gridCols'),
-      gridOk=document.getElementById('gridOk'),
-      gridCancel=document.getElementById('gridCancel');
+const
+  gridBtn = document.getElementById('gridBtn'),
+  gridModal = document.getElementById('gridModal'),
+  gridStepInp = document.getElementById('gridStep'),
+  gridColsInp = document.getElementById('gridCols'),
+  gridOk = document.getElementById('gridOk'),
+  gridCancel = document.getElementById('gridCancel');
+
+const
+  chkCenterX = document.getElementById('anchorCenterX'),
+  chkCenterY = document.getElementById('anchorCenterY'),
+  chkStretchW = document.getElementById('stretchWidth'),
+  chkStretchH = document.getElementById('stretchHeight');
+
 
 const panel=editor.Panels.addPanel({id:'inline',el:bar,visible:false});
 
@@ -202,6 +305,10 @@ editor.on('component:selected', sel=>{
   imgBtn&&imgBtn.set('visible',sel.get('type')==='image');
   chkRight.checked=!!sel.getAttributes()['data-anchor-right'];
   chkBottom.checked=!!sel.getAttributes()['data-anchor-bottom'];
+  chkCenterX.checked=!!sel.getAttributes()['data-anchor-center-x'];
+  chkCenterY.checked=!!sel.getAttributes()['data-anchor-center-y'];
+  chkStretchW.checked=!!sel.getAttributes()['data-stretch-width'];
+  chkStretchH.checked=!!sel.getAttributes()['data-stretch-height'];
 });
 
 pick.oninput=e=>{const s=editor.getSelected();s&&s.addStyle({color:e.target.value});};
@@ -215,20 +322,43 @@ function normalizePos(sel){
   const w=r.width,h=r.height;
   const attr=sel.getAttributes();
   const st={width:(w/cw*100)+'%',height:(h/ch*100)+'%'};
-  if(attr['data-anchor-right']){
+
+  let tr='';
+  if(attr['data-stretch-width']){
+    st.left='0%';
+    st.right='0%';
+    st.width='100%';
+  }else if(attr['data-anchor-center-x']){
+    st.left=((left+w/2)/cw*100)+'%';
+    st.right='';
+    tr+=' translateX(-50%)';
+  }else if(attr['data-anchor-right']){
     st.right=((cw-(left+w))/cw*100)+'%';
     st.left='';
   }else{
     st.left=(left/cw*100)+'%';
     st.right='';
   }
-  if(attr['data-anchor-bottom']){
+
+  if(attr['data-stretch-height']){
+    st.top='0%';
+    st.bottom='0%';
+    st.height='100%';
+  }else if(attr['data-anchor-center-y']){
+    st.top=((top+h/2)/ch*100)+'%';
+    st.bottom='';
+    tr+=' translateY(-50%)';
+  }else if(attr['data-anchor-bottom']){
     st.bottom=((ch-(top+h))/ch*100)+'%';
     st.top='';
   }else{
     st.top=(top/ch*100)+'%';
     st.bottom='';
   }
+
+  st.transform=tr.trim();
+  if(!st.transform) delete st.transform;
+
   sel.addStyle(st);
 }
 
@@ -246,8 +376,46 @@ chkBottom.onchange=e=>{
   normalizePos(s);
 };
 
+chkCenterX.onchange=e=>{
+  const s=editor.getSelected();if(!s)return;
+  if(e.target.checked) s.addAttributes({'data-anchor-center-x':'1'});
+  else s.removeAttributes('data-anchor-center-x');
+  normalizePos(s);
+};
+
+chkCenterY.onchange=e=>{
+  const s=editor.getSelected();if(!s)return;
+  if(e.target.checked) s.addAttributes({'data-anchor-center-y':'1'});
+  else s.removeAttributes('data-anchor-center-y');
+  normalizePos(s);
+};
+
+chkStretchW.onchange=e=>{
+  const s=editor.getSelected();if(!s)return;
+  if(e.target.checked) s.addAttributes({'data-stretch-width':'1'});
+  else s.removeAttributes('data-stretch-width');
+  normalizePos(s);
+};
+
+chkStretchH.onchange=e=>{
+  const s=editor.getSelected();if(!s)return;
+  if(e.target.checked) s.addAttributes({'data-stretch-height':'1'});
+  else s.removeAttributes('data-stretch-height');
+  normalizePos(s);
+};
+
 editor.on('component:drag:end', normalizePos);
 editor.on('component:resize:end', normalizePos);
+
+function normalizeAll(){
+  editor.getWrapper().find('*').forEach(c=>!c.is('wrapper')&&normalizePos(c));
+}
+
+editor.on('canvas:frame:load', ()=>{
+  const win = editor.Canvas.getFrameEl().contentWindow;
+  win.addEventListener('resize', normalizeAll);
+});
+editor.on('page', ()=> setTimeout(normalizeAll));
 
 /* ───────────────────────────  API helpers  ─────────────────────────── */
 async function api(m,p,b){
@@ -350,3 +518,4 @@ if(!grapesjs.plugins.get('gjs-preset-webpage')){
   bm.add('form',{label:'Форма',category:'Базовые',
     content:'<form><input placeholder="Имя"><br/><input type="email" placeholder="Email"><br/><textarea placeholder="Сообщение"></textarea><br/><button type="submit">Отправить</button></form>'});
 }
+
