@@ -158,6 +158,15 @@ class Builder {
     this.cfgName     = document.getElementById('cfgName');
     this.cfgBg       = document.getElementById('cfgBg');
     this.cfgGrid     = document.getElementById('cfgGrid');
+    this.propW       = document.getElementById('propWidth');
+    this.propH       = document.getElementById('propHeight');
+    this.propFont    = document.getElementById('propFont');
+    this.propBg      = document.getElementById('propBg');
+
+    if (this.propW)   this.propW.oninput   = () => this.changeProps();
+    if (this.propH)   this.propH.oninput   = () => this.changeProps();
+    if (this.propFont) this.propFont.oninput = () => this.changeProps();
+    if (this.propBg)  this.propBg.oninput  = () => this.changeProps();
 
     this.btnCreate.onclick  = () => this.createProject();
     this.btnLoad.onclick    = () => this.loadProject();
@@ -368,11 +377,45 @@ class Builder {
     this.updateLayers();
   }
 
+  changeProps() {
+    if (!this.selected) return;
+    if (this.propW) {
+      const w = parseInt(this.propW.value) || 0;
+      if (w) {
+        this.selected.style.width = w + 'px';
+        this.selected.dataset.w = w;
+      }
+    }
+    if (this.propH) {
+      const h = parseInt(this.propH.value) || 0;
+      if (h) {
+        this.selected.style.height = h + 'px';
+        this.selected.dataset.h = h;
+      }
+    }
+    if (this.propFont) {
+      const fs = parseInt(this.propFont.value) || 0;
+      if (fs) {
+        this.selected.style.fontSize = fs + 'px';
+        this.selected.dataset.fs = fs;
+      }
+    }
+    if (this.propBg) {
+      const bg = this.propBg.value;
+      this.selected.style.backgroundColor = bg;
+      this.selected.dataset.bg = bg;
+    }
+  }
+
   selectElement(el) {
     if (this.selected) this.selected.classList.remove('selected');
     this.selected = el;
     if (!el) {
       bar?.setAttribute('hidden', '');
+      if (this.propW) this.propW.value = '';
+      if (this.propH) this.propH.value = '';
+      if (this.propFont) this.propFont.value = '';
+      if (this.propBg) this.propBg.value = '#ffffff';
       this.updateLayers();
       return;
     }
@@ -394,6 +437,20 @@ class Builder {
     const bottom = document.getElementById('anchorBottom');
     if (right) right.checked = el.dataset.anchorRight === '1';
     if (bottom) bottom.checked = el.dataset.anchorBottom === '1';
+
+    const cs = getComputedStyle(el);
+    if (this.propW) this.propW.value = parseInt(el.dataset.w || cs.width);
+    if (this.propH) this.propH.value = parseInt(el.dataset.h || cs.height);
+    if (this.propFont) this.propFont.value = parseInt(el.dataset.fs || cs.fontSize);
+    if (this.propBg) {
+      let bgHex = '#ffffff';
+      const bg = el.dataset.bg || cs.backgroundColor;
+      const nums = (bg || '').match(/\d+/g);
+      if (nums) {
+        bgHex = '#' + nums.slice(0,3).map(x => (+x).toString(16).padStart(2,'0')).join('');
+      }
+      this.propBg.value = bgHex;
+    }
     this.updateLayers();
   }
 }

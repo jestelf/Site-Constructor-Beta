@@ -159,3 +159,14 @@ html,body{
 }
 #configPanel[hidden]{display:none;}
 #configPanel label{display:block;margin:4px 0;}
+
+/* панель свойств */
+#propsPanel label{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:4px;
+}
+#propsPanel input[type="number"]{
+  width:60px;
+}
