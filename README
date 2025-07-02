@@ -2,7 +2,6 @@
 
 Визуальный редактор, позволяющий **буквально перетаскивать и «мять» элементы страницы как пластилин**.
 ✦ свободное позиционирование (absolute + snap-grid)
-✦ переключаемая сетка с настраиваемым шагом
 ✦ многостраничные проекты + внутренние ссылки
 ✦ экспорт в ZIP (HTML / CSS / assets)
 ✦ русский интерфейс + мини-панель форматирования над выделенным элементом
@@ -81,7 +80,6 @@ export DATABASE_URL=postgresql://user:pass@localhost/dbname
 | Фича                                    | Где в коде                                            |
 | --------------------------------------- | ----------------------------------------------------- |
 | Drag & Drop + snap-grid                 | `sitebuilder/frontend/main.js`, плагин `grapesjs-plugin-absolute` |
-| Сетка (on/off, шаг)                     | `frontend/main.js`, `frontend/style.css` |
 | Позиции в процентах + привязка к краям  | `sitebuilder/frontend/main.js` |
 | Мини-toolbar *(bold/italic/H1/H2/цвет)* | `sitebuilder/frontend/main.js`                                    |
 | Полный русификатор GrapesJS             | `i18n.messages.ru` в `main.js`                        |
