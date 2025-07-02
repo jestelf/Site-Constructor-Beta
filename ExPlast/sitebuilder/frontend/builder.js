@@ -637,9 +637,17 @@ class Builder {
     }
     el.classList.add('selected');
     const r = el.getBoundingClientRect();
-    bar.style.left = r.right + 5 + 'px';
-    bar.style.top  = r.top + 'px';
-    bar?.classList.add('open');
+    if (bar) {
+      let left = r.right + 5;
+      if (left + bar.offsetWidth > window.innerWidth) {
+        left = r.left - bar.offsetWidth - 5;
+      }
+      let top = r.top;
+      if (top < 0) top = 0;
+      bar.style.left = left + 'px';
+      bar.style.top  = top + 'px';
+      bar.classList.add('open');
+    }
     if (pick) {
       const rgb = getComputedStyle(el).color;
       const nums = rgb.match(/\d+/g);
