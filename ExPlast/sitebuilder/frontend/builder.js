@@ -147,6 +147,7 @@ class Builder {
     this.layerId = 0;
     this.undoStack = [];
     this.redoStack = [];
+    this.clipboard = null;
   }
 
   init() {
@@ -210,6 +211,16 @@ class Builder {
       } else if (e.ctrlKey && e.key.toLowerCase() === 'y') {
         e.preventDefault();
         this.redo();
+      } else if (e.ctrlKey && e.key.toLowerCase() === 'c') {
+        if (this.selected) {
+          e.preventDefault();
+          this.copyElement();
+        }
+      } else if (e.ctrlKey && e.key.toLowerCase() === 'v') {
+        if (this.clipboard) {
+          e.preventDefault();
+          this.pasteElement();
+        }
       } else if (e.key === 'Delete' && this.selected) {
         this.selected.remove();
         this.selected = null;
@@ -468,6 +479,33 @@ class Builder {
     }
     this.selectElement(null);
     this.updateLayers();
+  }
+
+  copyElement() {
+    if (this.selected) {
+      this.clipboard = this.selected;
+    }
+  }
+
+  pasteElement() {
+    if (!this.clipboard || !this.canvas) return;
+    const cs = getComputedStyle(this.clipboard);
+    const dx = 20, dy = 20;
+    const clone = this.clipboard.cloneNode(true);
+    clone.classList.remove('selected');
+    clone.dataset.layerId = ++this.layerId;
+    clone.style.right = '';
+    clone.style.bottom = '';
+    delete clone.dataset.anchorRight;
+    delete clone.dataset.anchorBottom;
+    const left = parseFloat(cs.left) || 0;
+    const top = parseFloat(cs.top) || 0;
+    clone.style.left = (left + dx) + 'px';
+    clone.style.top  = (top + dy) + 'px';
+    this.canvas.appendChild(clone);
+    this.selectElement(clone);
+    this.updateLayers();
+    this.saveState();
   }
 
   selectElement(el) {
