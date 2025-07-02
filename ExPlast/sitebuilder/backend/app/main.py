@@ -99,7 +99,6 @@ def export_zip(pid: int, db: Session = Depends(get_db)):
 #             └─ sitebuilder/
 #                 ├─ frontend/
 #                 │   ├─ index.html
-#                 │   ├─ main.js
 #                 │   ├─ builder.js
 #                 │   └─ … (css, imgs)
 #                 └─ backend/
