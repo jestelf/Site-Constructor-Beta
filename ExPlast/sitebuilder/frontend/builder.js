@@ -1,5 +1,5 @@
 // Простые обработчики перетаскивания элементов
-let dragItem = null, dx = 0, dy = 0;
+let dragItem = null, dx = 0, dy = 0, moved = false;
 let selectedItem = null;
 const anchorRight = document.getElementById('anchorRight');
 const anchorBottom = document.getElementById('anchorBottom');
@@ -11,11 +11,13 @@ document.addEventListener('mousedown', e => {
   dx = e.clientX - r.left;
   dy = e.clientY - r.top;
   dragItem = el;
+  moved = false;
   e.preventDefault();
 });
 
 document.addEventListener('mousemove', e => {
   if (!dragItem) return;
+  moved = true;
   const p = dragItem.parentElement.getBoundingClientRect();
   let l = e.clientX - p.left - dx;
   let t = e.clientY - p.top - dy;
@@ -33,7 +35,10 @@ document.addEventListener('mousemove', e => {
   }
 });
 
-document.addEventListener('mouseup', () => { dragItem = null; });
+document.addEventListener('mouseup', () => {
+  if (dragItem && moved) builder.saveState();
+  dragItem = null;
+});
 
 // Создание блоков
 function addBlock(type) {
@@ -57,6 +62,7 @@ function addBlock(type) {
     const el = builder.canvas.lastElementChild;
     el.dataset.layerId = ++builder.layerId;
     builder.updateLayers();
+    builder.saveState();
   }
 }
 window.addBlock = addBlock;
@@ -121,6 +127,7 @@ function toggleAnchor(type) {
       delete selectedItem.dataset.anchorBottom;
     }
   }
+  builder.saveState();
 }
 
 anchorRight?.addEventListener('change', () => toggleAnchor('Right'));
@@ -138,6 +145,8 @@ class Builder {
     this.current = 'index';
     this.selected = null;
     this.layerId = 0;
+    this.undoStack = [];
+    this.redoStack = [];
   }
 
   init() {
@@ -192,13 +201,21 @@ class Builder {
     this.updateSelect();
     this.switchPage('index');
     this.applyConfig();
+    this.saveState();
 
     document.addEventListener('keydown', e => {
-      if (e.key === 'Delete' && this.selected) {
+      if (e.ctrlKey && e.key.toLowerCase() === 'z') {
+        e.preventDefault();
+        this.undo();
+      } else if (e.ctrlKey && e.key.toLowerCase() === 'y') {
+        e.preventDefault();
+        this.redo();
+      } else if (e.key === 'Delete' && this.selected) {
         this.selected.remove();
         this.selected = null;
         if (bar) bar.hidden = true;
         this.updateLayers();
+        this.saveState();
       }
     });
   }
@@ -335,6 +352,7 @@ class Builder {
       }
     }
     this.updateLayers();
+    this.saveState();
   }
 
   applyConfig() {
@@ -367,6 +385,7 @@ class Builder {
     const z = parseInt(this.selected.style.zIndex || '0') + delta;
     this.selected.style.zIndex = z;
     this.updateLayers();
+    this.saveState();
   }
 
   toggleLayer() {
@@ -375,6 +394,7 @@ class Builder {
     const icon = this.layerToggle.querySelector('i');
     if (icon) icon.className = this.selected.hidden ? 'fa fa-eye-slash' : 'fa fa-eye';
     this.updateLayers();
+    this.saveState();
   }
 
   changeProps() {
@@ -405,6 +425,49 @@ class Builder {
       this.selected.style.backgroundColor = bg;
       this.selected.dataset.bg = bg;
     }
+    this.saveState();
+  }
+
+  saveState() {
+    if (!this.canvas) return;
+    this.undoStack.push(this.canvas.innerHTML);
+    this.redoStack.length = 0;
+  }
+
+  undo() {
+    if (!this.undoStack.length) return;
+    this.redoStack.push(this.canvas.innerHTML);
+    const state = this.undoStack.pop();
+    this.canvas.innerHTML = state;
+    this.layerId = 0;
+    for (const el of this.canvas.querySelectorAll('.draggable')) {
+      const lid = parseInt(el.dataset.layerId);
+      if (lid) {
+        this.layerId = Math.max(this.layerId, lid);
+      } else {
+        el.dataset.layerId = ++this.layerId;
+      }
+    }
+    this.selectElement(null);
+    this.updateLayers();
+  }
+
+  redo() {
+    if (!this.redoStack.length) return;
+    this.undoStack.push(this.canvas.innerHTML);
+    const state = this.redoStack.pop();
+    this.canvas.innerHTML = state;
+    this.layerId = 0;
+    for (const el of this.canvas.querySelectorAll('.draggable')) {
+      const lid = parseInt(el.dataset.layerId);
+      if (lid) {
+        this.layerId = Math.max(this.layerId, lid);
+      } else {
+        el.dataset.layerId = ++this.layerId;
+      }
+    }
+    this.selectElement(null);
+    this.updateLayers();
   }
 
   selectElement(el) {
