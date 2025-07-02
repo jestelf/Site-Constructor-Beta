@@ -71,6 +71,60 @@ const editor = grapesjs.init({
   storageManager:{autoload:false,autosave:false},
 });
 
+/* ────────────────────────────────  Auto Layout ────────────────────────────── */
+const defType = editor.DomComponents.getType('default');
+if(defType){
+  const tr = defType.model.prototype.defaults.traits || [];
+  defType.model.prototype.defaults.traits = tr.concat([
+    {type:'select', name:'data-layout', label:'Auto Layout',
+      options:[
+        {value:'',      name:'Нет'},
+        {value:'row',   name:'Горизонтально'},
+        {value:'column',name:'Вертикально'}]},
+    {type:'number', name:'data-gap', label:'Отступ'},
+    {type:'select', name:'data-align', label:'Выравнивание',
+      options:[
+        {value:'start', name:'Начало'},
+        {value:'center',name:'Центр'},
+        {value:'end',   name:'Конец'}]}
+  ]);
+}
+
+function applyAutoLayout(frame){
+  const attr = frame.getAttributes();
+  const dir  = attr['data-layout'];
+  if(!dir) return;
+  const gap   = parseInt(attr['data-gap'])||0;
+  const align = attr['data-align']||'start';
+  const el = frame.view.el;
+  if(!el) return;
+  const fw=el.offsetWidth, fh=el.offsetHeight;
+  let x=0, y=0;
+  frame.components().forEach(c=>{
+    const e=c.view.el; if(!e) return;
+    const w=e.offsetWidth, h=e.offsetHeight;
+    let left=x, top=y;
+    if(dir==='row'){
+      if(align==='center') top=(fh-h)/2;
+      else if(align==='end') top=fh-h;
+      left=x; x+=w+gap;
+    }else{
+      if(align==='center') left=(fw-w)/2;
+      else if(align==='end') left=fw-w;
+      top=y; y+=h+gap;
+    }
+    c.addStyle({left:left+'px',top:top+'px'});
+    normalizePos(c);
+  });
+}
+
+editor.on('component:drag:end', cmp=>{const p=cmp.parent();p&&applyAutoLayout(p);});
+editor.on('component:resize:end', cmp=>{const p=cmp.parent();p&&applyAutoLayout(p);});
+editor.on('component:add', cmp=>{const p=cmp.parent();p&&applyAutoLayout(p);});
+editor.on('component:remove', cmp=>{const p=cmp.parent();p&&applyAutoLayout(p);});
+editor.on('component:update:data-layout component:update:data-gap component:update:data-align',
+           cmp=>applyAutoLayout(cmp));
+
 /* ────────────────────────────────  ПАНЕЛЬ СТРАНИЦ  ───────────────────────────── */
 const Pages   = editor.Pages;
 const selBox  = document.getElementById('pageSelect');
@@ -309,3 +363,4 @@ if(!grapesjs.plugins.get('gjs-preset-webpage')){
   bm.add('form',{label:'Форма',category:'Базовые',
     content:'<form><input placeholder="Имя"><br/><input type="email" placeholder="Email"><br/><textarea placeholder="Сообщение"></textarea><br/><button type="submit">Отправить</button></form>'});
 }
+
