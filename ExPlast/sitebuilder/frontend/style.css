@@ -111,6 +111,11 @@ html,body{
   color:#fff;
 }
 
+#pageSelect option.active{
+  font-weight:bold;
+  color:var(--color-primary);
+}
+
 #pagesBar button{
   background:var(--color-primary);
   border:none;

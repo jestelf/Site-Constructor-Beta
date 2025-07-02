@@ -310,6 +310,10 @@ class Builder {
       const o = document.createElement('option');
       o.value = id;
       o.textContent = id;
+      if (id === this.current) {
+        o.classList.add('active');
+        o.selected = true;
+      }
       this.pageSelect.appendChild(o);
     }
   }
@@ -426,6 +430,10 @@ class Builder {
     }
     this.current = id;
     this.pageSelect.value = id;
+    for (const opt of this.pageSelect.options) {
+      if (opt.value === id) opt.classList.add('active');
+      else opt.classList.remove('active');
+    }
     this.canvas.innerHTML = this.project.pages[id].html;
     this.layerId = 0;
     for (const el of this.canvas.querySelectorAll('.draggable')) {
