@@ -38,6 +38,9 @@ html,body{
 #canvas{
   height:calc(100vh - 3.375rem);
   background:var(--color-bg);
+  margin:10px;
+  border-radius:8px;
+  box-shadow:var(--shadow);
 }
 
 #gridOverlay{
@@ -186,8 +189,8 @@ html,body{
 /* боковая мини-панель */
 .toolbar{
   position:absolute;
-  right:10px;
-  top:60px;
+  right:20px;
+  top:70px;
   display:flex;
   flex-direction:column;
   gap:0.375rem;
@@ -239,16 +242,16 @@ html,body{
 
 /* левая панель блоков */
 #blocksBar{
-  left:10px;
+  left:20px;
   right:auto;
 }
 
 /* панель слоёв */
 #layersPanel{
-  left:160px;
+  left:170px;
   right:auto;
   width:140px;
-  top:70px;
+  top:80px;
 }
 
 #layersList{
@@ -295,8 +298,8 @@ html,body{
 
 /* панель свойств */
 #propsPanel{
-  right:10px;
-  top:70px;
+  right:20px;
+  top:80px;
 }
 #propsPanel label{
   display:flex;
