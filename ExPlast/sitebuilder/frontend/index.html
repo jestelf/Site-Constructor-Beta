@@ -16,36 +16,29 @@
 
   <!-- ── верхняя панель ── -->
   <div id="topBar">
-    <button id="btnCreate" class="btn"><i class="fa fa-file-circle-plus"></i><span data-i18n="create">Создать</span></button>
-    <button id="btnLoad" class="btn"><i class="fa fa-folder-open"></i><span data-i18n="load">Загрузить</span></button>
-    <button id="btnImport" class="btn"><i class="fa fa-file-import"></i><span data-i18n="import">Импорт</span></button>
-    <button id="btnSave" class="btn"><i class="fa fa-floppy-disk"></i><span data-i18n="save">Сохранить</span></button>
-    <button id="btnExport" class="btn"><i class="fa fa-file-export"></i><span data-i18n="export">Экспорт</span></button>
-    <button id="btnConfig" class="btn"><i class="fa fa-gear"></i><span data-i18n="settings">Настройки</span></button>
-    <button id="btnTheme" class="btn" title="" data-i18n-title="themeTip">🌙</button>
-    <button id="btnPreview" class="btn"><i class="fa fa-eye"></i><span data-i18n="preview">Предпросмотр</span></button>
-    <label class="btn" style="display:flex;align-items:center;gap:4px;user-select:none">
-      <input type="checkbox" id="toggleGrid" style="margin:0"> <span data-i18n="grid">Сетка</span>
-    </label>
-    <button id="btnHelp" class="btn" data-i18n-title="helpTip">?</button>
-    <select id="langSelect" class="btn">
-      <option value="ru">Русский</option>
-      <option value="en">English</option>
-    </select>
+    <button id="btnCreate" class="btn"><i class="fa fa-file-circle-plus"></i><span> Создать</span></button>
+    <button id="btnLoad" class="btn"><i class="fa fa-folder-open"></i><span> Загрузить</span></button>
+    <button id="btnImport" class="btn"><i class="fa fa-file-import"></i><span> Импорт</span></button>
+    <button id="btnSave" class="btn"><i class="fa fa-floppy-disk"></i><span> Сохранить</span></button>
+    <button id="btnExport" class="btn"><i class="fa fa-file-export"></i><span> Экспорт</span></button>
+    <button id="btnConfig" class="btn"><i class="fa fa-gear"></i><span> Настройки</span></button>
+    <button id="btnTheme" class="btn" title="Сменить тему">🌙</button>
+    <button id="btnPreview" class="btn"><i class="fa fa-eye"></i><span> Предпросмотр</span></button>
+    <button id="btnGrid" class="btn" title="Показать/скрыть сетку"><i class="fa fa-border-all"></i></button>
 
     <!-- панель страниц -->
     <div id="pagesBar">
       <select id="pageSelect"></select>
-      <button id="pageAdd"  class="btn" data-i18n-title="newPageTitle">＋</button>
-      <button id="pageDel"  class="btn" data-i18n-title="deletePageTitle">🗑</button>
+      <button id="pageAdd"  class="btn" title="Новая страница">＋</button>
+      <button id="pageDel"  class="btn" title="Удалить страницу">🗑</button>
     </div>
   </div>
 
   <div id="configPanel">
-    <label data-i18n="cfgNameLabel">Название: <input type="text" id="cfgName"></label>
-    <label data-i18n="cfgBgLabel">Цвет фона: <input type="color" id="cfgBg"></label>
-    <label data-i18n="cfgBgImageLabel">Фоновое изображение: <input type="url" id="cfgBgImage" placeholder="URL"></label>
-    <label data-i18n="cfgGridLabel">Шаг сетки: <input type="number" id="cfgGrid" min="1"></label>
+    <label>Название: <input type="text" id="cfgName"></label>
+    <label>Цвет фона: <input type="color" id="cfgBg"></label>
+    <label>Фоновое изображение: <input type="url" id="cfgBgImage" placeholder="URL"></label>
+    <label>Шаг сетки: <input type="number" id="cfgGrid" min="1"></label>
   </div>
 
   <div id="canvas">
@@ -60,79 +53,79 @@
 
   <!-- панель блоков -->
   <div id="blocksBar" class="toolbar open">
-    <h3 class="panel-title" data-i18n="blocks">Блоки</h3>
+    <h3 class="panel-title">Блоки</h3>
     <div class="block-item" draggable="true" data-type="text">
-      <i class="fa fa-font"></i><span data-i18n="blockText">Текст</span>
+      <i class="fa fa-font"></i><span>Текст</span>
     </div>
     <div class="block-item" draggable="true" data-type="image">
-      <i class="fa fa-image"></i><span data-i18n="blockImage">Картинка</span>
+      <i class="fa fa-image"></i><span>Картинка</span>
     </div>
     <div class="block-item" draggable="true" data-type="header">
-      <i class="fa fa-heading"></i><span data-i18n="blockHeader">Заголовок</span>
+      <i class="fa fa-heading"></i><span>Заголовок</span>
     </div>
     <div class="block-item" draggable="true" data-type="button">
-      <i class="fa fa-link"></i><span data-i18n="blockButton">Кнопка</span>
+      <i class="fa fa-link"></i><span>Кнопка</span>
     </div>
   </div>
 
   <!-- панель слоёв -->
   <div id="layersPanel" class="toolbar open">
-    <h3 class="panel-title" data-i18n="layers">Слои</h3>
+    <h3 class="panel-title">Слои</h3>
     <ul id="layersList"></ul>
     <div style="display:flex;gap:4px;">
-      <button id="layerUp" class="btn toolbar-btn" data-i18n-title="layerUpTitle">↑</button>
-      <button id="layerDown" class="btn toolbar-btn" data-i18n-title="layerDownTitle">↓</button>
-      <button id="layerToggle" class="btn toolbar-btn" data-i18n-title="layerToggleTitle"><i class="fa fa-eye"></i></button>
+      <button id="layerUp" class="btn toolbar-btn" title="Вверх">↑</button>
+      <button id="layerDown" class="btn toolbar-btn" title="Вниз">↓</button>
+      <button id="layerToggle" class="btn toolbar-btn" title="Показать/скрыть"><i class="fa fa-eye"></i></button>
     </div>
   </div>
 
   <!-- мини-панель -->
   <div id="inlineToolbar" class="toolbar inline-toolbar">
-    <input  type="color" id="colorPick" data-i18n-title="inlineColorTitle" title="Цвет текста">
-    <label data-i18n-title="anchorRightTitle" style="user-select:none">
+    <input  type="color" id="colorPick" title="Цвет текста">
+    <label title="К правому краю" style="user-select:none">
       ⇢<input type="checkbox" id="anchorRight" style="margin-left:4px">
     </label>
-    <label data-i18n-title="anchorBottomTitle" style="user-select:none">
+    <label title="К нижнему краю" style="user-select:none">
       ⇣<input type="checkbox" id="anchorBottom" style="margin-left:4px">
     </label>
   </div>
 
   <!-- панель свойств -->
   <div id="propsPanel" class="toolbar open">
-    <h3 class="panel-title" data-i18n="props">Свойства</h3>
-    <label data-i18n="widthLabel">Ширина: <input type="number" id="propWidth" min="1"></label>
-    <label data-i18n="heightLabel">Высота: <input type="number" id="propHeight" min="1"></label>
-    <label data-i18n="fontSizeLabel">Размер шрифта: <input type="number" id="propFont" min="1"></label>
-    <label data-i18n="textColorLabel">Цвет текста: <input type="color" id="propColor"></label>
-    <label data-i18n="alignLabel">Выравнивание:
+    <h3 class="panel-title">Свойства</h3>
+    <label>Ширина: <input type="number" id="propWidth" min="1"></label>
+    <label>Высота: <input type="number" id="propHeight" min="1"></label>
+    <label>Размер шрифта: <input type="number" id="propFont" min="1"></label>
+    <label>Цвет текста: <input type="color" id="propColor"></label>
+    <label>Выравнивание:
       <select id="propAlign">
-        <option value="left" data-i18n="alignLeft">Слева</option>
-        <option value="center" data-i18n="alignCenter">Центр</option>
-        <option value="right" data-i18n="alignRight">Справа</option>
-        <option value="justify" data-i18n="alignJustify">По ширине</option>
+        <option value="left">Слева</option>
+        <option value="center">Центр</option>
+        <option value="right">Справа</option>
+        <option value="justify">По ширине</option>
       </select>
     </label>
-    <label data-i18n="familyLabel">Семейство шрифта:
+    <label>Семейство шрифта:
       <select id="propFamily">
-        <option value="" data-i18n="familyDefault">По умолчанию</option>
+        <option value="">По умолчанию</option>
         <option value="Arial, sans-serif">Arial</option>
         <option value="Tahoma, sans-serif">Tahoma</option>
         <option value="'Times New Roman', serif">Times</option>
       </select>
     </label>
-    <label data-i18n="styleLabel">Начертание:
-      <input type="checkbox" id="propBold" title="" data-i18n-title="fontBoldTitle">B
-      <input type="checkbox" id="propItalic" title="" data-i18n-title="fontItalicTitle" style="margin-left:4px;">I
+    <label>Начертание:
+      <input type="checkbox" id="propBold" title="Жирный">B
+      <input type="checkbox" id="propItalic" title="Курсив" style="margin-left:4px;">I
     </label>
-    <label data-i18n="fillColorLabel">Цвет заливки: <input type="color" id="propBg"></label>
-    <label data-i18n="borderWidthLabel">Толщина рамки: <input type="number" id="propBorderWidth" min="0"></label>
-    <label data-i18n="borderColorLabel">Цвет рамки: <input type="color" id="propBorderColor"></label>
-    <label data-i18n="radiusLabel">Радиус: <input type="number" id="propRadius" min="0"></label>
-    <label data-i18n="shadowLabel">Тень: <input type="checkbox" id="propShadow"></label>
-    <label id="propSrcRow" style="display:none;" data-i18n="imgUrlLabel">URL изображения: <input type="url" id="propSrc" placeholder="https://..."></label>
-    <label id="propAltRow" style="display:none;" data-i18n="altTextLabel">Alt текст: <input type="text" id="propAlt"></label>
-    <label id="propHrefRow" style="display:none;" data-i18n="linkLabel">Ссылка: <input type="url" id="propHref" placeholder="https://..."></label>
-    <label id="propTargetRow" style="display:none;" data-i18n="openNewTabLabel"><input type="checkbox" id="propTarget" style="margin-right:4px;">Открывать в новой вкладке</label>
+    <label>Цвет заливки: <input type="color" id="propBg"></label>
+    <label>Толщина рамки: <input type="number" id="propBorderWidth" min="0"></label>
+    <label>Цвет рамки: <input type="color" id="propBorderColor"></label>
+    <label>Радиус: <input type="number" id="propRadius" min="0"></label>
+    <label>Тень: <input type="checkbox" id="propShadow"></label>
+    <label id="propSrcRow" style="display:none;">URL изображения: <input type="url" id="propSrc" placeholder="https://..."></label>
+    <label id="propAltRow" style="display:none;">Alt текст: <input type="text" id="propAlt"></label>
+    <label id="propHrefRow" style="display:none;">Ссылка: <input type="url" id="propHref" placeholder="https://..."></label>
+    <label id="propTargetRow" style="display:none;"><input type="checkbox" id="propTarget" style="margin-right:4px;">Открывать в новой вкладке</label>
   </div>
 
   <input type="file" id="fileImport" accept=".json,.zip" style="display:none">
