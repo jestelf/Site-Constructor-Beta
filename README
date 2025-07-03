@@ -9,30 +9,19 @@
 
 ---
 
-## Demo
-
-| Редактор                        | Мини-панель                       | Экспорт                     |
-| ------------------------------- | --------------------------------- | --------------------------- |
-| ![canvas](docs/demo_canvas.gif) | ![toolbar](docs/demo_toolbar.gif) | ![save](docs/demo_save.gif) |
-
----
 
 ## Содержание репозитория
 
 ```text
-jestelf/
+ExPlast/
 └── sitebuilder/
     ├── frontend/
-    │   ├── index.html        # интерфейс (GrapesJS + плагины)
-    │   └── main.js           # i18n, свободное позиционирование, Pages-UI
+    │   ├── index.html        # интерфейс редактора
+    │   ├── builder.js        # drag & drop, страницы, предпросмотр
+    │   └── style.css
     ├── backend/
-    │   ├── app/
-    │   │   ├── crud.py        # SQLite-CRUD
-    │   │   ├── exporter.py    # HTML/CSS → ZIP
-    │   │   ├── models.py      # SQLAlchemy ORM
-    │   │   ├── schemas.py     # Pydantic v2
-    │   │   └── main.py        # точки API + выдача фронта
-    │   └── tests/             # pytest — 100 % проходят
+    │   ├── app/              # FastAPI + SQLite
+    │   └── tests/            # pytest — 100 % проходят
     └── requirements.txt
 ```
 
@@ -69,7 +58,7 @@ export DATABASE_URL=postgresql://user:pass@localhost/dbname
 
 | команда                                           | назначение                   |
 | ------------------------------------------------- | ---------------------------- |
-| `PYTHONPATH=. python -m pytest -q`                | запускает unit-тесты (5 шт.) |
+| `PYTHONPATH=. python -m pytest -q`                | запускает unit-тесты (7 шт.) |
 | `curl -O http://127.0.0.1:8000/projects/1/export` | скачивает `site.zip`         |
 | `sqlite3 builder.db '.tables'`                    | просмотреть базу             |
 
@@ -77,17 +66,14 @@ export DATABASE_URL=postgresql://user:pass@localhost/dbname
 
 ## Ключевые фичи
 
-| Фича                                    | Где в коде                                            |
-| --------------------------------------- | ----------------------------------------------------- |
-| Drag & Drop + snap-grid                 | `sitebuilder/frontend/main.js`, плагин `grapesjs-plugin-absolute` |
-| Позиции в процентах + привязка к краям  | `sitebuilder/frontend/main.js` |
-| Мини-toolbar *(bold/italic/H1/H2/цвет)* | `sitebuilder/frontend/main.js`                                    |
-| Полный русификатор GrapesJS             | `i18n.messages.ru` в `main.js`                        |
-| Pages-UI (добавить/удалить, select)     | `sitebuilder/frontend/main.js`                                    |
-| href-trait для внутренних страниц       | кастомный trait `link-pages`                          |
-| ZIP-экспорт                             | `backend/app/exporter.py`                             |
-| 100 % тест-покрытие CRUD/экспорт        | `sitebuilder/backend/tests/`                          |
-
+| Фича                                    | Где в коде |
+| --------------------------------------- | ---------------------------------------- |
+| Drag & Drop + snap-grid                 | `sitebuilder/frontend/builder.js` |
+| Позиции в процентах + привязка к краям  | `sitebuilder/frontend/builder.js` |
+| Мини-toolbar *(bold/italic/цвет)*       | `sitebuilder/frontend/builder.js` |
+| Мультистраничные проекты                | `sitebuilder/frontend/builder.js` |
+| Предпросмотр и ZIP-экспорт              | `sitebuilder/frontend/builder.js`, `backend/app/exporter.py` |
+| 100 % тест-покрытие CRUD/экспорт        | `sitebuilder/backend/tests/` |
 ### Доступные блоки
 
 - **Текст** и **Картинка** — базовые элементы.
