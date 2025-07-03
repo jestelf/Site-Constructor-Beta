@@ -704,6 +704,7 @@ class Builder {
     this.gridVisible = !this.gridVisible;
     if (this.gridOverlay) {
       const step = parseInt(this.project.config.grid) || 0;
+      this.gridOverlay.style.backgroundSize = `${step}px ${step}px`;
       if (step > 0 && this.gridVisible) {
         this.gridOverlay.style.display = '';
       } else {
