@@ -8,7 +8,6 @@ let resizeItem = null, resizeDir = '', rx = 0, ry = 0, rw = 0, rh = 0, rl = 0, r
 let selectedItem = null;
 const anchorRight = document.getElementById('anchorRight');
 const anchorBottom = document.getElementById('anchorBottom');
-const AUTO_SAVE_KEY = 'builderAutosave';
 
 document.addEventListener('mousedown', e => {
   const handle = e.target.closest('.resize-handle');
@@ -276,7 +275,6 @@ class Builder {
     this.previewMode = false;
     this.guideH = null;
     this.guideV = null;
-    this.autosaveTimer = null;
 
   }
 
@@ -342,26 +340,6 @@ class Builder {
 
     this.theme = localStorage.getItem('theme') || 'light';
     this.applyTheme(this.theme);
-
-    let restored = false;
-    const saved = localStorage.getItem(AUTO_SAVE_KEY);
-    if (saved) {
-      try {
-        const data = JSON.parse(saved);
-        if (confirm('Обнаружена сохранённая копия. Восстановить?')) {
-          this.project = data.project || this.project;
-          if (!this.project.config) this.project.config = { bgColor: '#fafafa', grid: 20, bgImage: '' };
-          this.pages = Object.keys(this.project.pages);
-          restored = true;
-          this.updateSelect();
-          this.switchPage(data.current || this.pages[0]);
-          this.applyConfig();
-          this.setupDraggables();
-        } else {
-          localStorage.removeItem(AUTO_SAVE_KEY);
-        }
-      } catch {}
-    }
 
     if (this.propW)   this.propW.oninput   = () => this.changeProps();
     if (this.propH)   this.propH.oninput   = () => this.changeProps();
@@ -434,14 +412,11 @@ class Builder {
       }
     });
 
-    if (!restored) {
-      this.updateSelect();
-      this.switchPage('index');
-      this.setupDraggables();
-      this.applyConfig();
-    }
+    this.updateSelect();
+    this.switchPage('index');
+    this.setupDraggables();
+    this.applyConfig();
     this.saveState();
-    this.startAutosave();
 
     document.addEventListener('keydown', e => {
       if (e.ctrlKey && e.key.toLowerCase() === 'z') {
@@ -627,7 +602,6 @@ class Builder {
         data: { pages: this.project.pages, config: this.project.config },
       });
     }
-    localStorage.removeItem(AUTO_SAVE_KEY);
     alert('Сохранено');
   }
 
@@ -911,7 +885,6 @@ class Builder {
     if (!this.canvas) return;
     this.undoStack.push(this.canvas.innerHTML);
     this.redoStack.length = 0;
-    this.autosave();
   }
 
   undo() {
@@ -978,20 +951,6 @@ class Builder {
     this.selectElement(clone);
     this.updateLayers();
     this.saveState();
-  }
-
-  autosave() {
-    if (!this.canvas) return;
-    this.project.pages[this.current].html = this.canvas.innerHTML;
-    localStorage.setItem(AUTO_SAVE_KEY, JSON.stringify({
-      project: this.project,
-      current: this.current,
-    }));
-  }
-
-  startAutosave() {
-    clearInterval(this.autosaveTimer);
-    this.autosaveTimer = setInterval(() => this.autosave(), 10000);
   }
 
   togglePreview() {
