@@ -50,8 +50,8 @@ html,body{
   pointer-events:none;
   z-index:2;
   background-image:
-    repeating-linear-gradient(to right, rgba(0,0,0,.1) 0 1px, transparent 1px),
-    repeating-linear-gradient(to bottom, rgba(0,0,0,.1) 0 1px, transparent 1px);
+    repeating-linear-gradient(to right, rgba(0,0,0,.2) 0 1px, transparent 1px),
+    repeating-linear-gradient(to bottom, rgba(0,0,0,.2) 0 1px, transparent 1px);
   background-size:20px 20px;
 }
 
@@ -98,6 +98,7 @@ html,body{
   transition:background-color .2s;
 }
 .btn:hover{background:var(--color-primary-hover);}
+.btn.active{background:var(--color-primary-hover);}
 
 /* элементы, создаваемые редактором */
 .draggable{

@@ -273,6 +273,7 @@ class Builder {
     this.groupBox = null;
     this.guideH = null;
     this.guideV = null;
+    this.gridVisible = true;
   }
 
   setupDraggables() {
@@ -331,6 +332,7 @@ class Builder {
     this.propHrefRow = document.getElementById('propHrefRow');
     this.propTargetRow = document.getElementById('propTargetRow');
     this.btnTheme    = document.getElementById('btnTheme');
+    this.btnGrid     = document.getElementById('btnGrid');
 
     this.theme = localStorage.getItem('theme') || 'light';
     this.applyTheme(this.theme);
@@ -363,6 +365,10 @@ class Builder {
     this.btnExport.onclick  = () => this.exportProject();
     this.btnConfig.onclick  = () => this.toggleConfig();
     if (this.btnTheme) this.btnTheme.onclick = () => this.toggleTheme();
+    if (this.btnGrid) {
+      this.btnGrid.onclick = () => this.toggleGrid();
+      this.btnGrid.classList.toggle('active', this.gridVisible);
+    }
     this.pageSelect.onchange = () => this.switchPage(this.pageSelect.value);
     this.pageAdd.onclick    = () => this.addPage();
     this.pageDel.onclick    = () => this.deletePage();
@@ -670,7 +676,7 @@ class Builder {
       }
       if (this.gridOverlay) {
         const step = parseInt(this.project.config.grid) || 0;
-        if (step > 0) {
+        if (step > 0 && this.gridVisible) {
           this.gridOverlay.style.backgroundSize = `${step}px ${step}px`;
           this.gridOverlay.style.display = '';
         } else {
@@ -692,6 +698,19 @@ class Builder {
   toggleTheme() {
     const next = this.theme === 'dark' ? 'light' : 'dark';
     this.applyTheme(next);
+  }
+
+  toggleGrid() {
+    this.gridVisible = !this.gridVisible;
+    if (this.gridOverlay) {
+      const step = parseInt(this.project.config.grid) || 0;
+      if (step > 0 && this.gridVisible) {
+        this.gridOverlay.style.display = '';
+      } else {
+        this.gridOverlay.style.display = 'none';
+      }
+    }
+    if (this.btnGrid) this.btnGrid.classList.toggle('active', this.gridVisible);
   }
 
   async toggleConfig() {
