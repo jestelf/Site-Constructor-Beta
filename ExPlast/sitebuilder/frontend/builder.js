@@ -199,7 +199,7 @@ class Builder {
       id: null,
       name: '',
       pages: { index: { html: '' } },
-      config: { bgColor: '#fafafa', grid: 20 }
+      config: { bgColor: '#fafafa', grid: 20, bgImage: '' }
     };
     this.pages = ['index'];
     this.current = 'index';
@@ -235,6 +235,7 @@ class Builder {
     this.configPanel = document.getElementById('configPanel');
     this.cfgName     = document.getElementById('cfgName');
     this.cfgBg       = document.getElementById('cfgBg');
+    this.cfgBgImage  = document.getElementById('cfgBgImage');
     this.cfgGrid     = document.getElementById('cfgGrid');
     this.gridOverlay = document.getElementById('gridOverlay');
     this.propW       = document.getElementById('propWidth');
@@ -347,7 +348,7 @@ class Builder {
       id: null,
       name,
       pages: { index: { html: '' } },
-      config: { bgColor: '#fafafa', grid: 20 }
+      config: { bgColor: '#fafafa', grid: 20, bgImage: '' }
     };
     this.pages = ['index'];
     this.updateSelect();
@@ -365,8 +366,9 @@ class Builder {
         id: pr.id,
         name: pr.name,
         pages: pr.data.pages || { index: { html: '' } },
-        config: pr.data.config || { bgColor: '#fafafa', grid: 20 }
+        config: pr.data.config || { bgColor: '#fafafa', grid: 20, bgImage: '' }
       };
+      if (this.project.config.bgImage === undefined) this.project.config.bgImage = '';
       this.pages = Object.keys(this.project.pages);
       this.updateSelect();
       this.switchPage(this.pages[0]);
@@ -457,10 +459,15 @@ class Builder {
 
   applyConfig() {
     if (!this.project.config) {
-      this.project.config = { bgColor: '#fafafa', grid: 20 };
+      this.project.config = { bgColor: '#fafafa', grid: 20, bgImage: '' };
     }
     if (this.canvas) {
       this.canvas.style.background = this.project.config.bgColor || '#fafafa';
+      if (this.project.config.bgImage) {
+        this.canvas.style.backgroundImage = `url('${this.project.config.bgImage}')`;
+      } else {
+        this.canvas.style.backgroundImage = '';
+      }
       if (this.gridOverlay) {
         const step = parseInt(this.project.config.grid) || 0;
         if (step > 0) {
@@ -491,6 +498,7 @@ class Builder {
     if (this.configPanel.classList.contains('open')) {
       this.project.name = this.cfgName.value;
       this.project.config.bgColor = this.cfgBg.value;
+      this.project.config.bgImage = this.cfgBgImage.value.trim();
       this.project.config.grid = parseInt(this.cfgGrid.value) || 0;
       this.applyConfig();
       this.configPanel.classList.remove('open');
@@ -498,6 +506,7 @@ class Builder {
     } else {
       this.cfgName.value = this.project.name;
       this.cfgBg.value = this.project.config.bgColor;
+      this.cfgBgImage.value = this.project.config.bgImage || '';
       this.cfgGrid.value = this.project.config.grid;
       this.configPanel.classList.add('open');
     }
