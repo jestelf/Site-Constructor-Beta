@@ -676,8 +676,10 @@ class Builder {
       }
       if (this.gridOverlay) {
         const step = parseInt(this.project.config.grid) || 0;
-        if (step > 0 && this.gridVisible) {
-          this.gridOverlay.style.backgroundSize = `${step}px ${step}px`;
+        this.gridOverlay.style.backgroundSize = `${step}px ${step}px`;
+        if (!this.gridVisible) {
+          this.gridOverlay.style.display = 'none';
+        } else if (step > 0) {
           this.gridOverlay.style.display = '';
         } else {
           this.gridOverlay.style.display = 'none';
