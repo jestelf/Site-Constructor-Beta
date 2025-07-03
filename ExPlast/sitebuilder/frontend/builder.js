@@ -657,8 +657,13 @@ class Builder {
       }
       let top = r.top;
       if (top < 0) top = 0;
+      if (top + bar.offsetHeight > window.innerHeight) {
+        top = window.innerHeight - bar.offsetHeight;
+        if (top < 0) top = 0;
+      }
       bar.style.left = left + 'px';
       bar.style.top  = top + 'px';
+      bar.style.right = 'auto';
       bar.classList.add('open');
     }
     if (pick) {
