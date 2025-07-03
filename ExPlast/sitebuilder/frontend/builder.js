@@ -269,6 +269,10 @@ class Builder {
     this.propH       = document.getElementById('propHeight');
     this.propFont    = document.getElementById('propFont');
     this.propBg      = document.getElementById('propBg');
+    this.propSrc     = document.getElementById('propSrc');
+    this.propAlt     = document.getElementById('propAlt');
+    this.propSrcRow  = document.getElementById('propSrcRow');
+    this.propAltRow  = document.getElementById('propAltRow');
     this.btnTheme    = document.getElementById('btnTheme');
 
     this.theme = localStorage.getItem('theme') || 'light';
@@ -278,6 +282,8 @@ class Builder {
     if (this.propH)   this.propH.oninput   = () => this.changeProps();
     if (this.propFont) this.propFont.oninput = () => this.changeProps();
     if (this.propBg)  this.propBg.oninput  = () => this.changeProps();
+    if (this.propSrc) this.propSrc.oninput = () => this.changeProps();
+    if (this.propAlt) this.propAlt.oninput = () => this.changeProps();
     if (this.cfgGrid) this.cfgGrid.oninput = () => {
       this.project.config.grid = parseInt(this.cfgGrid.value) || 0;
       this.applyConfig();
@@ -584,6 +590,21 @@ class Builder {
       this.selected.style.backgroundColor = bg;
       this.selected.dataset.bg = bg;
     }
+    if (this.selected.classList.contains('block-image')) {
+      const img = this.selected.querySelector('img');
+      if (img) {
+        if (this.propSrc) {
+          const src = this.propSrc.value.trim();
+          if (src) img.src = src;
+          this.selected.dataset.src = src;
+        }
+        if (this.propAlt) {
+          const alt = this.propAlt.value;
+          img.alt = alt;
+          this.selected.dataset.alt = alt;
+        }
+      }
+    }
     this.saveState();
   }
 
@@ -668,6 +689,10 @@ class Builder {
       if (this.propH) this.propH.value = '';
       if (this.propFont) this.propFont.value = '';
       if (this.propBg) this.propBg.value = '#ffffff';
+      if (this.propSrc) this.propSrc.value = '';
+      if (this.propAlt) this.propAlt.value = '';
+      if (this.propSrcRow) this.propSrcRow.style.display = 'none';
+      if (this.propAltRow) this.propAltRow.style.display = 'none';
       this.updateLayers();
       return;
     }
@@ -717,6 +742,18 @@ class Builder {
         bgHex = '#' + nums.slice(0,3).map(x => (+x).toString(16).padStart(2,'0')).join('');
       }
       this.propBg.value = bgHex;
+    }
+    if (el.classList.contains('block-image')) {
+      const img = el.querySelector('img');
+      if (this.propSrcRow) this.propSrcRow.style.display = '';
+      if (this.propAltRow) this.propAltRow.style.display = '';
+      if (this.propSrc) this.propSrc.value = el.dataset.src || img?.src || '';
+      if (this.propAlt) this.propAlt.value = el.dataset.alt || img?.alt || '';
+    } else {
+      if (this.propSrcRow) this.propSrcRow.style.display = 'none';
+      if (this.propAltRow) this.propAltRow.style.display = 'none';
+      if (this.propSrc) this.propSrc.value = '';
+      if (this.propAlt) this.propAlt.value = '';
     }
     this.updateLayers();
   }
