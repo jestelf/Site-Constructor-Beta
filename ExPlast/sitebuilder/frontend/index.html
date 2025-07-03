@@ -45,10 +45,18 @@
   <!-- панель блоков -->
   <div id="blocksBar" class="toolbar open">
     <h3 class="panel-title">Блоки</h3>
-    <button onclick="addBlock('text')">Текст</button>
-    <button onclick="addBlock('image')">Картинка</button>
-    <button onclick="addBlock('header')">Заголовок</button>
-    <button onclick="addBlock('button')">Кнопка</button>
+    <div class="block-item" draggable="true" data-type="text">
+      <i class="fa fa-font"></i><span>Текст</span>
+    </div>
+    <div class="block-item" draggable="true" data-type="image">
+      <i class="fa fa-image"></i><span>Картинка</span>
+    </div>
+    <div class="block-item" draggable="true" data-type="header">
+      <i class="fa fa-heading"></i><span>Заголовок</span>
+    </div>
+    <div class="block-item" draggable="true" data-type="button">
+      <i class="fa fa-link"></i><span>Кнопка</span>
+    </div>
   </div>
 
   <!-- панель слоёв -->
