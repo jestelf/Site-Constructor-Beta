@@ -217,6 +217,21 @@ html,body{
   min-width:1.75rem;
 }
 
+.inline-toolbar{
+  position:absolute;
+  right:auto;
+  top:auto;
+  flex-direction:row;
+  gap:0.25rem;
+  padding:0.25rem;
+  font-size:0.75rem;
+  background:rgba(47,62,72,0.9);
+}
+.inline-toolbar input[type="color"]{
+  width:1.2rem;
+  height:1.2rem;
+}
+
 .panel-title{
   background:var(--color-panel);
   border:1px solid #555;

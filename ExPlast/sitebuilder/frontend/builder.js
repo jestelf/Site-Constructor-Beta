@@ -657,6 +657,7 @@ class Builder {
       }
       let top = r.top;
       if (top < 0) top = 0;
+      bar.style.right = '';
       bar.style.left = left + 'px';
       bar.style.top  = top + 'px';
       bar.classList.add('open');
