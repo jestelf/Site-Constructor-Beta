@@ -37,9 +37,10 @@ html,body{
 
 #canvas{
   height:calc(100vh - 3.375rem);
-  background:var(--color-bg);
+  background:#fff;
   margin:10px;
   border-radius:8px;
+  position:relative;
   box-shadow:var(--shadow);
 }
 
@@ -49,10 +50,43 @@ html,body{
   pointer-events:none;
   z-index:2;
   background-image:
-    repeating-linear-gradient(to right, rgba(0,0,0,.1) 0 1px, transparent 1px),
-    repeating-linear-gradient(to bottom, rgba(0,0,0,.1) 0 1px, transparent 1px);
+    repeating-linear-gradient(to right, rgba(0,0,0,.2) 0 1px, transparent 1px),
+    repeating-linear-gradient(to bottom, rgba(0,0,0,.2) 0 1px, transparent 1px);
   background-size:20px 20px;
 }
+
+#rulers{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  z-index:3;
+  font-size:10px;
+}
+#rulerH{
+  position:absolute;
+  left:0;
+  right:0;
+  height:20px;
+  background:repeating-linear-gradient(to right, #ccc 0 1px, transparent 1px 10px);
+  border-bottom:1px solid #ccc;
+}
+#rulerV{
+  position:absolute;
+  top:0;
+  bottom:0;
+  width:20px;
+  background:repeating-linear-gradient(to bottom, #ccc 0 1px, transparent 1px 10px);
+  border-right:1px solid #ccc;
+}
+.guide-line{
+  position:absolute;
+  background:red;
+  pointer-events:none;
+  display:none;
+  z-index:4;
+}
+#guideH{height:1px;left:0;right:0;}
+#guideV{width:1px;top:0;bottom:0;}
 
 .btn{
   background:var(--color-primary);
@@ -64,6 +98,7 @@ html,body{
   transition:background-color .2s;
 }
 .btn:hover{background:var(--color-primary-hover);}
+.btn.active{background:var(--color-primary-hover);}
 
 /* элементы, создаваемые редактором */
 .draggable{
