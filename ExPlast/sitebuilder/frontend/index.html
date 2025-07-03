@@ -18,6 +18,7 @@
   <div id="topBar">
     <button id="btnCreate" class="btn"><i class="fa fa-file-circle-plus"></i><span> Создать</span></button>
     <button id="btnLoad" class="btn"><i class="fa fa-folder-open"></i><span> Загрузить</span></button>
+    <button id="btnImport" class="btn"><i class="fa fa-file-import"></i><span> Импорт</span></button>
     <button id="btnSave" class="btn"><i class="fa fa-floppy-disk"></i><span> Сохранить</span></button>
     <button id="btnExport" class="btn"><i class="fa fa-file-export"></i><span> Экспорт</span></button>
     <button id="btnConfig" class="btn"><i class="fa fa-gear"></i><span> Настройки</span></button>
@@ -126,6 +127,8 @@
     <label id="propTargetRow" style="display:none;"><input type="checkbox" id="propTarget" style="margin-right:4px;">Открывать в новой вкладке</label>
   </div>
 
+  <input type="file" id="fileImport" accept=".json,.zip" style="display:none">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="builder.js" onload="builder.init()"></script>
 </body>
 </html>
