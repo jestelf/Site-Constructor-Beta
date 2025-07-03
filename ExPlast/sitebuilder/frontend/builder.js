@@ -100,7 +100,7 @@ function addBlock(type) {
       html = '<div class="draggable block-text" contenteditable="true" style="left:20px;top:20px;">Текст</div>';
       break;
     case 'image':
-      html = '<img class="draggable block-image" style="left:20px;top:20px;" src="https://via.placeholder.com/150">';
+      html = '<div class="block-image draggable" style="left:20px;top:20px;"><img src="https://via.placeholder.com/150"></div>';
       break;
     case 'header':
       html = '<h1 class="draggable block-text" contenteditable="true" style="left:20px;top:20px;">Заголовок</h1>';
