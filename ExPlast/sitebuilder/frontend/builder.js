@@ -274,6 +274,10 @@ class Builder {
     this.propBold    = document.getElementById('propBold');
     this.propItalic  = document.getElementById('propItalic');
     this.propBg      = document.getElementById('propBg');
+    this.propBorderWidth = document.getElementById('propBorderWidth');
+    this.propBorderColor = document.getElementById('propBorderColor');
+    this.propRadius  = document.getElementById('propRadius');
+    this.propShadow  = document.getElementById('propShadow');
     this.propSrc     = document.getElementById('propSrc');
     this.propAlt     = document.getElementById('propAlt');
     this.propSrcRow  = document.getElementById('propSrcRow');
@@ -292,6 +296,10 @@ class Builder {
     if (this.propBold) this.propBold.onchange = () => this.changeProps();
     if (this.propItalic) this.propItalic.onchange = () => this.changeProps();
     if (this.propBg)  this.propBg.oninput  = () => this.changeProps();
+    if (this.propBorderWidth) this.propBorderWidth.oninput = () => this.changeProps();
+    if (this.propBorderColor) this.propBorderColor.oninput = () => this.changeProps();
+    if (this.propRadius) this.propRadius.oninput = () => this.changeProps();
+    if (this.propShadow) this.propShadow.onchange = () => this.changeProps();
     if (this.propSrc) this.propSrc.oninput = () => this.changeProps();
     if (this.propAlt) this.propAlt.oninput = () => this.changeProps();
     if (this.cfgGrid) this.cfgGrid.oninput = () => {
@@ -625,6 +633,28 @@ class Builder {
       this.selected.style.backgroundColor = bg;
       this.selected.dataset.bg = bg;
     }
+    if (this.propBorderWidth) {
+      const bw = parseInt(this.propBorderWidth.value) || 0;
+      this.selected.style.borderWidth = bw + 'px';
+      this.selected.style.borderStyle = bw ? 'solid' : 'none';
+      this.selected.dataset.borderWidth = bw;
+    }
+    if (this.propBorderColor) {
+      const bc = this.propBorderColor.value;
+      this.selected.style.borderColor = bc;
+      if (parseInt(this.propBorderWidth?.value || 0) > 0) this.selected.style.borderStyle = 'solid';
+      this.selected.dataset.borderColor = bc;
+    }
+    if (this.propRadius) {
+      const br = parseInt(this.propRadius.value) || 0;
+      this.selected.style.borderRadius = br + 'px';
+      this.selected.dataset.radius = br;
+    }
+    if (this.propShadow) {
+      const sh = this.propShadow.checked ? 'var(--shadow)' : 'none';
+      this.selected.style.boxShadow = sh;
+      this.selected.dataset.shadow = sh;
+    }
     if (this.selected.classList.contains('block-image')) {
       const img = this.selected.querySelector('img');
       if (img) {
@@ -729,6 +759,10 @@ class Builder {
       if (this.propBold) this.propBold.checked = false;
       if (this.propItalic) this.propItalic.checked = false;
       if (this.propBg) this.propBg.value = '#ffffff';
+      if (this.propBorderWidth) this.propBorderWidth.value = '';
+      if (this.propBorderColor) this.propBorderColor.value = '#000000';
+      if (this.propRadius) this.propRadius.value = '';
+      if (this.propShadow) this.propShadow.checked = false;
       if (this.propSrc) this.propSrc.value = '';
       if (this.propAlt) this.propAlt.value = '';
       if (this.propSrcRow) this.propSrcRow.style.display = 'none';
@@ -794,6 +828,16 @@ class Builder {
       }
       this.propBg.value = bgHex;
     }
+    if (this.propBorderWidth) this.propBorderWidth.value = parseInt(el.dataset.borderWidth || cs.borderWidth);
+    if (this.propBorderColor) {
+      let bcHex = '#000000';
+      const bc = el.dataset.borderColor || cs.borderColor;
+      const nums = (bc || '').match(/\d+/g);
+      if (nums) bcHex = '#' + nums.slice(0,3).map(x => (+x).toString(16).padStart(2,'0')).join('');
+      this.propBorderColor.value = bcHex;
+    }
+    if (this.propRadius) this.propRadius.value = parseInt(el.dataset.radius || cs.borderRadius);
+    if (this.propShadow) this.propShadow.checked = (el.dataset.shadow || cs.boxShadow) !== 'none';
     if (el.classList.contains('block-image')) {
       const img = el.querySelector('img');
       if (this.propSrcRow) this.propSrcRow.style.display = '';
