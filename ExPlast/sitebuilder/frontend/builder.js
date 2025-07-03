@@ -260,7 +260,7 @@ class Builder {
       id: null,
       name: '',
       pages: { index: { html: '' } },
-      config: { bgColor: '#fafafa', grid: 20, bgImage: '' }
+      config: { bgColor: '#fafafa', grid: 20, bgImage: '', showGrid: true }
     };
     this.pages = ['index'];
     this.current = 'index';
@@ -297,6 +297,7 @@ class Builder {
     this.btnExport   = document.getElementById('btnExport');
     this.btnConfig   = document.getElementById('btnConfig');
     this.btnPreview  = document.getElementById('btnPreview');
+    this.toggleGrid  = document.getElementById('toggleGrid');
     this.pageSelect  = document.getElementById('pageSelect');
     this.pageAdd     = document.getElementById('pageAdd');
     this.pageDel     = document.getElementById('pageDel');
@@ -350,7 +351,7 @@ class Builder {
         const data = JSON.parse(saved);
         if (confirm('Обнаружена сохранённая копия. Восстановить?')) {
           this.project = data.project || this.project;
-          if (!this.project.config) this.project.config = { bgColor: '#fafafa', grid: 20, bgImage: '' };
+          if (!this.project.config) this.project.config = { bgColor: '#fafafa', grid: 20, bgImage: '', showGrid: true };
           this.pages = Object.keys(this.project.pages);
           restored = true;
           this.updateSelect();
@@ -382,6 +383,10 @@ class Builder {
     if (this.propTarget) this.propTarget.onchange = () => this.changeProps();
     if (this.cfgGrid) this.cfgGrid.oninput = () => {
       this.project.config.grid = parseInt(this.cfgGrid.value) || 0;
+      this.applyConfig();
+    };
+    if (this.toggleGrid) this.toggleGrid.onchange = () => {
+      this.project.config.showGrid = this.toggleGrid.checked;
       this.applyConfig();
     };
 
@@ -598,7 +603,7 @@ class Builder {
       id: null,
       name,
       pages: { index: { html: '' } },
-      config: { bgColor: '#fafafa', grid: 20, bgImage: '' }
+      config: { bgColor: '#fafafa', grid: 20, bgImage: '', showGrid: true }
     };
     this.pages = ['index'];
     this.updateSelect();
@@ -616,7 +621,7 @@ class Builder {
         id: pr.id,
         name: pr.name,
         pages: pr.data.pages || { index: { html: '' } },
-        config: pr.data.config || { bgColor: '#fafafa', grid: 20, bgImage: '' }
+        config: pr.data.config || { bgColor: '#fafafa', grid: 20, bgImage: '', showGrid: true }
       };
       if (this.project.config.bgImage === undefined) this.project.config.bgImage = '';
       this.pages = Object.keys(this.project.pages);
@@ -677,12 +682,12 @@ class Builder {
             pages[name.replace(/\.html$/i, '')] = { html };
           }
         }
-        this.project = { id: null, name: file.name.replace(/\.zip$/i, ''), pages, config: { bgColor: '#fafafa', grid: 20, bgImage: '' } };
+        this.project = { id: null, name: file.name.replace(/\.zip$/i, ''), pages, config: { bgColor: '#fafafa', grid: 20, bgImage: '', showGrid: true } };
       } else {
         alert('Неизвестный формат');
         return;
       }
-      if (!this.project.config) this.project.config = { bgColor: '#fafafa', grid: 20, bgImage: '' };
+      if (!this.project.config) this.project.config = { bgColor: '#fafafa', grid: 20, bgImage: '', showGrid: true };
       this.pages = Object.keys(this.project.pages);
       this.updateSelect();
       this.switchPage(this.pages[0]);
@@ -748,7 +753,7 @@ class Builder {
 
   applyConfig() {
     if (!this.project.config) {
-      this.project.config = { bgColor: '#fafafa', grid: 20, bgImage: '' };
+      this.project.config = { bgColor: '#fafafa', grid: 20, bgImage: '', showGrid: true };
     }
     if (this.canvas) {
       this.canvas.style.background = this.project.config.bgColor || '#fafafa';
@@ -761,11 +766,12 @@ class Builder {
         const step = parseInt(this.project.config.grid) || 0;
         if (step > 0) {
           this.gridOverlay.style.backgroundSize = `${step}px ${step}px`;
-          this.gridOverlay.style.display = '';
+          this.gridOverlay.style.display = this.project.config.showGrid ? '' : 'none';
         } else {
           this.gridOverlay.style.display = 'none';
         }
       }
+      if (this.toggleGrid) this.toggleGrid.checked = !!this.project.config.showGrid;
     }
   }
 
