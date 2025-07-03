@@ -1,6 +1,9 @@
 // Простые обработчики перетаскивания элементов
 let dragItem = null, dx = 0, dy = 0, moved = false;
+
 let dragItems = [], dragOffsets = [];
+
+let dragBlockType = null;
 let resizeItem = null, resizeDir = '', rx = 0, ry = 0, rw = 0, rh = 0, rl = 0, rt = 0;
 let selectedItem = null;
 const anchorRight = document.getElementById('anchorRight');
@@ -126,26 +129,35 @@ document.addEventListener('mouseup', () => {
 });
 
 // Создание блоков
-function addBlock(type) {
+function addBlock(type, x = 20, y = 20) {
   let html = '';
   switch (type) {
     case 'text':
-      html = '<div class="draggable block-text" contenteditable="true" style="left:20px;top:20px;">Текст</div>';
+      html = '<div class="draggable block-text" contenteditable="true">Текст</div>';
       break;
     case 'image':
-      html = '<div class="block-image draggable" style="left:20px;top:20px;"><img src="https://via.placeholder.com/150"></div>';
+      html = '<div class="block-image draggable"><img src="https://via.placeholder.com/150"></div>';
       break;
     case 'header':
-      html = '<h1 class="draggable block-header" contenteditable="true" style="left:20px;top:20px;">Заголовок</h1>';
+      html = '<h1 class="draggable block-header" contenteditable="true">Заголовок</h1>';
       break;
     case 'button':
-      html = '<a class="draggable block-button" href="#" style="left:20px;top:20px;">Кнопка</a>';
+      html = '<a class="draggable block-button" href="#">Кнопка</a>';
       break;
   }
   if (html && builder.canvas) {
     builder.canvas.insertAdjacentHTML('beforeend', html);
     const el = builder.canvas.lastElementChild;
+    const step = builder.project?.config?.grid || 0;
+    if (step > 0) {
+      x = Math.round(x / step) * step;
+      y = Math.round(y / step) * step;
+    }
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
     el.dataset.layerId = ++builder.layerId;
+    el.dataset.x = x;
+    el.dataset.y = y;
     addResizeHandles(el);
     builder.updateLayers();
     builder.saveState();
@@ -349,6 +361,30 @@ class Builder {
     this.layerUp.onclick    = () => this.moveLayer(1);
     this.layerDown.onclick  = () => this.moveLayer(-1);
     this.layerToggle.onclick= () => this.toggleLayer();
+
+    this.blocksBar = document.getElementById('blocksBar');
+    if (this.blocksBar) {
+      for (const item of this.blocksBar.querySelectorAll('.block-item')) {
+        item.addEventListener('dragstart', () => {
+          dragBlockType = item.dataset.type;
+        });
+      }
+    }
+
+    if (this.canvas) {
+      this.canvas.addEventListener('dragover', e => {
+        if (dragBlockType) e.preventDefault();
+      });
+      this.canvas.addEventListener('drop', e => {
+        if (!dragBlockType) return;
+        e.preventDefault();
+        const rect = this.canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        addBlock(dragBlockType, x, y);
+        dragBlockType = null;
+      });
+    }
 
     this.canvas.addEventListener('click', e => {
       const el = e.target.closest('.draggable');
