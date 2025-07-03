@@ -1,0 +1,8 @@
+digraph G {
+  rankdir=LR;
+  node [shape=box, style=rounded, fontname="Helvetica"];
+  Frontend [label="Frontend\n(GrapesJS)"];
+  Backend [label="Backend\n(FastAPI)"];
+  Frontend -> Backend [label="REST API"];
+  Backend -> Frontend [label="HTML/CSS" dir=back];
+}
