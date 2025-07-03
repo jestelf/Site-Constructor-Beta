@@ -147,7 +147,14 @@ const bar = document.getElementById('inlineToolbar');
 const pick = document.getElementById('colorPick');
 
 if (pick) {
-  pick.oninput = e => document.execCommand('foreColor', false, e.target.value);
+  pick.oninput = e => {
+    if (builder.selected) {
+      builder.selected.style.color = e.target.value;
+      builder.selected.dataset.color = e.target.value;
+    }
+    document.execCommand('foreColor', false, e.target.value);
+    builder.saveState();
+  };
 }
 
 bar?.addEventListener('mousedown', e => e.stopPropagation());
@@ -657,10 +664,12 @@ class Builder {
       }
       let top = r.top;
       if (top < 0) top = 0;
+
       if (top + bar.offsetHeight > window.innerHeight) {
         top = window.innerHeight - bar.offsetHeight;
         if (top < 0) top = 0;
       }
+
       bar.style.left = left + 'px';
       bar.style.top  = top + 'px';
       bar.style.right = 'auto';
