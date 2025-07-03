@@ -80,6 +80,14 @@ html,body{
   outline:2px dashed var(--color-primary);
 }
 
+#groupSelectBox{
+  position:absolute;
+  border:2px dashed var(--color-primary);
+  pointer-events:none;
+  display:none;
+  box-sizing:border-box;
+}
+
 .draggable .resize-handle{
   position:absolute;
   width:0.5rem;

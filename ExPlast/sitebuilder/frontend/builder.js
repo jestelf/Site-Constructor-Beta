@@ -1,5 +1,8 @@
 // Простые обработчики перетаскивания элементов
 let dragItem = null, dx = 0, dy = 0, moved = false;
+
+let dragItems = [], dragOffsets = [];
+
 let dragBlockType = null;
 let resizeItem = null, resizeDir = '', rx = 0, ry = 0, rw = 0, rh = 0, rl = 0, rt = 0;
 let selectedItem = null;
@@ -23,11 +26,18 @@ document.addEventListener('mousedown', e => {
   }
   const el = e.target.closest('.draggable');
   if (!el) return;
-  const r = el.getBoundingClientRect();
-  dx = e.clientX - r.left;
-  dy = e.clientY - r.top;
+  if (!builder.selectedItems.includes(el)) {
+    builder.selectElement(el);
+  }
+  const items = builder.selectedItems.length ? builder.selectedItems : [el];
+  dragItems = items;
+  dragOffsets = [];
+  for (const it of items) {
+    const r = it.getBoundingClientRect();
+    dragOffsets.push({ el: it, dx: e.clientX - r.left, dy: e.clientY - r.top });
+    it.classList.add('dragging');
+  }
   dragItem = el;
-  dragItem.classList.add('dragging');
   moved = false;
   e.preventDefault();
 });
@@ -73,28 +83,32 @@ document.addEventListener('mousemove', e => {
 
   if (!dragItem) return;
   moved = true;
-  const p = dragItem.parentElement.getBoundingClientRect();
-  let l = e.clientX - p.left - dx;
-  let t = e.clientY - p.top - dy;
   const step = builder?.project?.config?.grid || 0;
-  if (step > 0) {
-    l = Math.round(l / step) * step;
-    t = Math.round(t / step) * step;
+  for (let i = 0; i < dragOffsets.length; i++) {
+    const info = dragOffsets[i];
+    const p = info.el.parentElement.getBoundingClientRect();
+    let l = e.clientX - p.left - info.dx;
+    let t = e.clientY - p.top - info.dy;
+    if (step > 0) {
+      l = Math.round(l / step) * step;
+      t = Math.round(t / step) * step;
+    }
+    l = Math.max(0, Math.min(l, p.width - info.el.offsetWidth));
+    t = Math.max(0, Math.min(t, p.height - info.el.offsetHeight));
+    if (info.el.dataset.anchorRight) {
+      info.el.style.right = ((p.width - l - info.el.offsetWidth) / p.width * 100) + '%';
+    } else {
+      info.el.style.left = (l / p.width * 100) + '%';
+    }
+    if (info.el.dataset.anchorBottom) {
+      info.el.style.bottom = ((p.height - t - info.el.offsetHeight) / p.height * 100) + '%';
+    } else {
+      info.el.style.top  = (t / p.height * 100) + '%';
+    }
+    info.el.dataset.x = l;
+    info.el.dataset.y = t;
   }
-  l = Math.max(0, Math.min(l, p.width - dragItem.offsetWidth));
-  t = Math.max(0, Math.min(t, p.height - dragItem.offsetHeight));
-  if (dragItem.dataset.anchorRight) {
-    dragItem.style.right = ((p.width - l - dragItem.offsetWidth) / p.width * 100) + '%';
-  } else {
-    dragItem.style.left = (l / p.width * 100) + '%';
-  }
-  if (dragItem.dataset.anchorBottom) {
-    dragItem.style.bottom = ((p.height - t - dragItem.offsetHeight) / p.height * 100) + '%';
-  } else {
-    dragItem.style.top  = (t / p.height * 100) + '%';
-  }
-  dragItem.dataset.x = l;
-  dragItem.dataset.y = t;
+  builder.updateGroupBox();
 });
 
 document.addEventListener('mouseup', () => {
@@ -104,9 +118,14 @@ document.addEventListener('mouseup', () => {
     resizeItem = null;
     return;
   }
-  if (dragItem && moved) builder.saveState();
-  if (dragItem) dragItem.classList.remove('dragging');
+  if (dragItems.length && moved) builder.saveState();
+  for (const info of dragOffsets) {
+    info.el.classList.remove('dragging');
+  }
   dragItem = null;
+  dragItems = [];
+  dragOffsets = [];
+  builder.updateGroupBox();
 });
 
 // Создание блоков
@@ -240,12 +259,14 @@ class Builder {
     };
     this.pages = ['index'];
     this.current = 'index';
+    this.selectedItems = [];
     this.selected = null;
     this.layerId = 0;
     this.undoStack = [];
     this.redoStack = [];
     this.clipboard = null;
     this.theme = 'light';
+    this.groupBox = null;
   }
 
   setupDraggables() {
@@ -275,6 +296,11 @@ class Builder {
     this.cfgBgImage  = document.getElementById('cfgBgImage');
     this.cfgGrid     = document.getElementById('cfgGrid');
     this.gridOverlay = document.getElementById('gridOverlay');
+    if (this.canvas) {
+      this.groupBox = document.createElement('div');
+      this.groupBox.id = 'groupSelectBox';
+      this.canvas.appendChild(this.groupBox);
+    }
     this.propW       = document.getElementById('propWidth');
     this.propH       = document.getElementById('propHeight');
     this.propFont    = document.getElementById('propFont');
@@ -363,8 +389,8 @@ class Builder {
     this.canvas.addEventListener('click', e => {
       const el = e.target.closest('.draggable');
       if (el) {
-        this.selectElement(el);
-      } else {
+        this.selectElement(el, e.shiftKey);
+      } else if (!e.shiftKey) {
         this.selectElement(null);
       }
     });
@@ -392,11 +418,13 @@ class Builder {
           e.preventDefault();
           this.pasteElement();
         }
-      } else if (e.key === 'Delete' && this.selected) {
-        this.selected.remove();
+      } else if (e.key === 'Delete' && this.selectedItems.length) {
+        for (const it of this.selectedItems) it.remove();
+        this.selectedItems = [];
         this.selected = null;
         if (bar) bar.classList.remove('open');
         this.updateLayers();
+        this.updateGroupBox();
         this.saveState();
       }
     });
@@ -426,10 +454,32 @@ class Builder {
       const li = document.createElement('li');
       li.textContent = el.tagName.toLowerCase() + ' ' + el.dataset.layerId;
       li.dataset.id = el.dataset.layerId;
-      if (el === this.selected) li.classList.add('selected');
+      if (this.selectedItems.includes(el)) li.classList.add('selected');
       li.onclick = () => { this.selectElement(el); this.updateLayers(); };
       this.layersList.appendChild(li);
     }
+  }
+
+  updateGroupBox() {
+    if (!this.groupBox) return;
+    if (this.selectedItems.length <= 1) {
+      this.groupBox.style.display = 'none';
+      return;
+    }
+    const p = this.canvas.getBoundingClientRect();
+    let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
+    for (const el of this.selectedItems) {
+      const r = el.getBoundingClientRect();
+      left = Math.min(left, r.left);
+      top = Math.min(top, r.top);
+      right = Math.max(right, r.right);
+      bottom = Math.max(bottom, r.bottom);
+    }
+    this.groupBox.style.display = 'block';
+    this.groupBox.style.left = (left - p.left) + 'px';
+    this.groupBox.style.top = (top - p.top) + 'px';
+    this.groupBox.style.width = (right - left) + 'px';
+    this.groupBox.style.height = (bottom - top) + 'px';
   }
 
   async createProject() {
@@ -801,10 +851,24 @@ class Builder {
     this.saveState();
   }
 
-  selectElement(el) {
-    if (this.selected) this.selected.classList.remove('selected');
-    this.selected = el;
-    if (!el) {
+  selectElement(el, append = false) {
+    if (!append) {
+      for (const it of this.selectedItems) it.classList.remove('selected');
+      this.selectedItems = [];
+    }
+    if (el && append && this.selectedItems.includes(el)) {
+      el.classList.remove('selected');
+      this.selectedItems = this.selectedItems.filter(i => i !== el);
+    } else if (el) {
+      el.classList.add('selected');
+      this.selectedItems.push(el);
+    }
+
+    this.selected = this.selectedItems[0] || null;
+    selectedItem = this.selected;
+    this.updateGroupBox();
+
+    if (!this.selected) {
       bar?.classList.remove('open');
       if (this.propW) this.propW.value = '';
       if (this.propH) this.propH.value = '';
@@ -828,10 +892,12 @@ class Builder {
       if (this.propHrefRow) this.propHrefRow.style.display = 'none';
       if (this.propTargetRow) this.propTargetRow.style.display = 'none';
       this.updateLayers();
+      this.updateGroupBox();
       return;
     }
-    el.classList.add('selected');
-    const r = el.getBoundingClientRect();
+    const se = this.selected;
+    se.classList.add('selected');
+    const r = se.getBoundingClientRect();
     if (bar) {
       let left = r.right + 5;
       if (left + bar.offsetWidth > window.innerWidth) {
@@ -857,64 +923,64 @@ class Builder {
       if (nums) {
         hex = '#' + nums.slice(0, 3).map(x => (+x).toString(16).padStart(2, '0')).join('');
       }
-      pick.value = el.dataset.color || hex;
+      pick.value = se.dataset.color || hex;
     }
     const right = document.getElementById('anchorRight');
     const bottom = document.getElementById('anchorBottom');
-    if (right) right.checked = el.dataset.anchorRight === '1';
-    if (bottom) bottom.checked = el.dataset.anchorBottom === '1';
+    if (right) right.checked = se.dataset.anchorRight === '1';
+    if (bottom) bottom.checked = se.dataset.anchorBottom === '1';
 
-    const cs = getComputedStyle(el);
-    if (this.propW) this.propW.value = parseInt(el.dataset.w || cs.width);
-    if (this.propH) this.propH.value = parseInt(el.dataset.h || cs.height);
-    if (this.propFont) this.propFont.value = parseInt(el.dataset.fs || cs.fontSize);
+    const cs = getComputedStyle(se);
+    if (this.propW) this.propW.value = parseInt(se.dataset.w || cs.width);
+    if (this.propH) this.propH.value = parseInt(se.dataset.h || cs.height);
+    if (this.propFont) this.propFont.value = parseInt(se.dataset.fs || cs.fontSize);
     if (this.propColor) {
       let colHex = '#000000';
-      const c = el.dataset.color || cs.color;
+      const c = se.dataset.color || cs.color;
       const nums = (c || '').match(/\d+/g);
       if (nums) colHex = '#' + nums.slice(0,3).map(x => (+x).toString(16).padStart(2,'0')).join('');
       this.propColor.value = colHex;
     }
-    if (this.propAlign) this.propAlign.value = el.dataset.textAlign || cs.textAlign;
-    if (this.propFamily) this.propFamily.value = el.dataset.fontFamily || cs.fontFamily.replace(/"/g, '');
-    if (this.propBold) this.propBold.checked = (el.dataset.fontWeight || cs.fontWeight) === 'bold' || parseInt(el.dataset.fontWeight || cs.fontWeight) >= 700;
-    if (this.propItalic) this.propItalic.checked = (el.dataset.fontStyle || cs.fontStyle) === 'italic';
+    if (this.propAlign) this.propAlign.value = se.dataset.textAlign || cs.textAlign;
+    if (this.propFamily) this.propFamily.value = se.dataset.fontFamily || cs.fontFamily.replace(/"/g, '');
+    if (this.propBold) this.propBold.checked = (se.dataset.fontWeight || cs.fontWeight) === 'bold' || parseInt(se.dataset.fontWeight || cs.fontWeight) >= 700;
+    if (this.propItalic) this.propItalic.checked = (se.dataset.fontStyle || cs.fontStyle) === 'italic';
     if (this.propBg) {
       let bgHex = '#ffffff';
-      const bg = el.dataset.bg || cs.backgroundColor;
+      const bg = se.dataset.bg || cs.backgroundColor;
       const nums = (bg || '').match(/\d+/g);
       if (nums) {
         bgHex = '#' + nums.slice(0,3).map(x => (+x).toString(16).padStart(2,'0')).join('');
       }
       this.propBg.value = bgHex;
     }
-    if (this.propBorderWidth) this.propBorderWidth.value = parseInt(el.dataset.borderWidth || cs.borderWidth);
+    if (this.propBorderWidth) this.propBorderWidth.value = parseInt(se.dataset.borderWidth || cs.borderWidth);
     if (this.propBorderColor) {
       let bcHex = '#000000';
-      const bc = el.dataset.borderColor || cs.borderColor;
+      const bc = se.dataset.borderColor || cs.borderColor;
       const nums = (bc || '').match(/\d+/g);
       if (nums) bcHex = '#' + nums.slice(0,3).map(x => (+x).toString(16).padStart(2,'0')).join('');
       this.propBorderColor.value = bcHex;
     }
-    if (this.propRadius) this.propRadius.value = parseInt(el.dataset.radius || cs.borderRadius);
-    if (this.propShadow) this.propShadow.checked = (el.dataset.shadow || cs.boxShadow) !== 'none';
-    if (el.classList.contains('block-image')) {
-      const img = el.querySelector('img');
+    if (this.propRadius) this.propRadius.value = parseInt(se.dataset.radius || cs.borderRadius);
+    if (this.propShadow) this.propShadow.checked = (se.dataset.shadow || cs.boxShadow) !== 'none';
+    if (se.classList.contains('block-image')) {
+      const img = se.querySelector('img');
       if (this.propSrcRow) this.propSrcRow.style.display = '';
       if (this.propAltRow) this.propAltRow.style.display = '';
-      if (this.propSrc) this.propSrc.value = el.dataset.src || img?.src || '';
-      if (this.propAlt) this.propAlt.value = el.dataset.alt || img?.alt || '';
+      if (this.propSrc) this.propSrc.value = se.dataset.src || img?.src || '';
+      if (this.propAlt) this.propAlt.value = se.dataset.alt || img?.alt || '';
     } else {
       if (this.propSrcRow) this.propSrcRow.style.display = 'none';
       if (this.propAltRow) this.propAltRow.style.display = 'none';
       if (this.propSrc) this.propSrc.value = '';
       if (this.propAlt) this.propAlt.value = '';
     }
-    if (el.classList.contains('block-button') || el.tagName.toLowerCase() === 'a') {
+    if (se.classList.contains('block-button') || se.tagName.toLowerCase() === 'a') {
       if (this.propHrefRow) this.propHrefRow.style.display = '';
       if (this.propTargetRow) this.propTargetRow.style.display = '';
-      if (this.propHref) this.propHref.value = el.dataset.href || el.getAttribute('href') || '';
-      if (this.propTarget) this.propTarget.checked = (el.dataset.target || el.getAttribute('target')) === '_blank';
+      if (this.propHref) this.propHref.value = se.dataset.href || se.getAttribute('href') || '';
+      if (this.propTarget) this.propTarget.checked = (se.dataset.target || se.getAttribute('target')) === '_blank';
     } else {
       if (this.propHrefRow) this.propHrefRow.style.display = 'none';
       if (this.propTargetRow) this.propTargetRow.style.display = 'none';
@@ -922,6 +988,7 @@ class Builder {
       if (this.propTarget) this.propTarget.checked = false;
     }
     this.updateLayers();
+    this.updateGroupBox();
   }
 }
 
