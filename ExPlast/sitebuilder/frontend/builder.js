@@ -8,6 +8,8 @@ let resizeItem = null, resizeDir = '', rx = 0, ry = 0, rw = 0, rh = 0, rl = 0, r
 let selectedItem = null;
 const anchorRight = document.getElementById('anchorRight');
 const anchorBottom = document.getElementById('anchorBottom');
+const AUTO_SAVE_KEY = 'builderAutosave';
+const AUTO_SAVE_INTERVAL = 10000;
 
 document.addEventListener('mousedown', e => {
   const handle = e.target.closest('.resize-handle');
@@ -275,6 +277,7 @@ class Builder {
     this.previewMode = false;
     this.guideH = null;
     this.guideV = null;
+    this.autosaveTimer = null;
     this.gridVisible = false;
     this.canvasObserver = null;
   }
@@ -347,6 +350,26 @@ class Builder {
 
     this.theme = localStorage.getItem('theme') || 'light';
     this.applyTheme(this.theme);
+
+    let restored = false;
+    const saved = localStorage.getItem(AUTO_SAVE_KEY);
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        if (confirm('Обнаружена сохранённая копия. Восстановить?')) {
+          this.project = data.project || this.project;
+          if (!this.project.config) this.project.config = { bgColor: '#fafafa', grid: 20, bgImage: '' };
+          this.pages = Object.keys(this.project.pages);
+          restored = true;
+          this.updateSelect();
+          this.switchPage(data.current || this.pages[0]);
+          this.applyConfig();
+          this.setupDraggables();
+        } else {
+          localStorage.removeItem(AUTO_SAVE_KEY);
+        }
+      } catch {}
+    }
 
     if (this.propW)   this.propW.oninput   = () => this.changeProps();
     if (this.propH)   this.propH.oninput   = () => this.changeProps();
@@ -424,11 +447,14 @@ class Builder {
       }
     });
 
-    this.updateSelect();
-    this.switchPage('index');
-    this.setupDraggables();
-    this.applyConfig();
+    if (!restored) {
+      this.updateSelect();
+      this.switchPage('index');
+      this.setupDraggables();
+      this.applyConfig();
+    }
     this.saveState();
+    this.startAutosave();
 
     document.addEventListener('keydown', e => {
       if (e.ctrlKey && e.key.toLowerCase() === 'z') {
@@ -576,6 +602,7 @@ class Builder {
     this.switchPage('index');
     this.setupDraggables();
     this.applyConfig();
+    this.startAutosave();
   }
 
   async loadProject() {
@@ -594,6 +621,7 @@ class Builder {
       this.updateSelect();
       this.switchPage(this.pages[0]);
       this.applyConfig();
+      this.startAutosave();
       } catch { alert('Нет проекта'); }
   }
 
@@ -614,6 +642,9 @@ class Builder {
         data: { pages: this.project.pages, config: this.project.config },
       });
     }
+    localStorage.removeItem(AUTO_SAVE_KEY);
+    this.stopAutosave();
+    this.startAutosave();
     alert('Сохранено');
   }
 
@@ -658,6 +689,7 @@ class Builder {
       alert('Ошибка импорта');
     } finally {
       this.fileImport.value = '';
+      this.startAutosave();
     }
   }
 
@@ -952,6 +984,7 @@ class Builder {
     if (!this.canvas) return;
     this.undoStack.push(this.canvas.innerHTML);
     this.redoStack.length = 0;
+    this.autosave();
   }
 
   undo() {
@@ -1018,6 +1051,24 @@ class Builder {
     this.selectElement(clone);
     this.updateLayers();
     this.saveState();
+  }
+
+  autosave() {
+    if (!this.canvas) return;
+    this.project.pages[this.current].html = this.canvas.innerHTML;
+    localStorage.setItem(AUTO_SAVE_KEY, JSON.stringify({
+      project: this.project,
+      current: this.current,
+    }));
+  }
+
+  startAutosave() {
+    clearInterval(this.autosaveTimer);
+    this.autosaveTimer = setInterval(() => this.autosave(), AUTO_SAVE_INTERVAL);
+  }
+
+  stopAutosave() {
+    clearInterval(this.autosaveTimer);
   }
 
   togglePreview() {
