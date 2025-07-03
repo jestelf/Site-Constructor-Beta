@@ -147,7 +147,14 @@ const bar = document.getElementById('inlineToolbar');
 const pick = document.getElementById('colorPick');
 
 if (pick) {
-  pick.oninput = e => document.execCommand('foreColor', false, e.target.value);
+  pick.oninput = e => {
+    if (builder.selected) {
+      builder.selected.style.color = e.target.value;
+      builder.selected.dataset.color = e.target.value;
+    }
+    document.execCommand('foreColor', false, e.target.value);
+    builder.saveState();
+  };
 }
 
 bar?.addEventListener('mousedown', e => e.stopPropagation());
