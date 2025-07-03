@@ -992,6 +992,11 @@ class Builder {
         if (this.configPanel.dataset.wasOpen === '1') this.configPanel.classList.add('open');
         this.configPanel.dataset.wasOpen = '';
       }
+      if (this.gridOverlay) {
+        const prev = this.gridOverlay.dataset.prevDisplay;
+        this.gridOverlay.style.display = prev || '';
+        this.gridOverlay.dataset.prevDisplay = '';
+      }
       if (this.previewWindow && !this.previewWindow.closed) this.previewWindow.close();
       this.previewWindow = null;
       this.previewMode = false;
@@ -1005,6 +1010,10 @@ class Builder {
     if (this.configPanel) {
       this.configPanel.dataset.wasOpen = this.configPanel.classList.contains('open') ? '1' : '0';
       this.configPanel.classList.remove('open');
+    }
+    if (this.gridOverlay) {
+      this.gridOverlay.dataset.prevDisplay = this.gridOverlay.style.display;
+      this.gridOverlay.style.display = 'none';
     }
 
     const html = this.buildPreviewHTML();
