@@ -9,6 +9,7 @@
   --color-primary-hover:#2d9c94;
   --radius:6px;
   --shadow:0 4px 8px rgba(0,0,0,.3);
+  --color-text:#fff;
 }
 
 html.theme-light{
@@ -16,6 +17,7 @@ html.theme-light{
   --color-panel:#2f3e48;
   --color-primary:#38b2ac;
   --color-primary-hover:#2d9c94;
+  --color-text:#fff;
 }
 
 html.theme-dark{
@@ -23,6 +25,7 @@ html.theme-dark{
   --color-panel:#222831;
   --color-primary:#4b86c2;
   --color-primary-hover:#3b6e9b;
+  --color-text:#fff;
 }
 
 html,body{
@@ -50,7 +53,7 @@ html,body{
 
 .btn{
   background:var(--color-primary);
-  color:#fff;
+  color:var(--color-text);
   border:none;
   border-radius:var(--radius);
   box-shadow:var(--shadow);
@@ -97,7 +100,7 @@ html,body{
   display:inline-block;
   padding:0.375rem 0.75rem;
   background:var(--color-primary);
-  color:#fff;
+  color:var(--color-text);
   border-radius:var(--radius);
   transition:background-color .2s;
 }
@@ -120,7 +123,7 @@ html,body{
   display:flex;
   gap:0.5rem;
   align-items:center;
-  color:#fff;
+  color:var(--color-text);
   box-shadow:var(--shadow);
 }
 #topBar button{
@@ -139,6 +142,7 @@ html,body{
   padding:0.25rem 0.5rem;
   border-radius:var(--radius);
   box-shadow:var(--shadow);
+  color:var(--color-text);
 }
 
 #pagesBar select{
@@ -146,7 +150,7 @@ html,body{
   border:1px solid #555;
   border-radius:var(--radius);
   background:var(--color-panel);
-  color:#fff;
+  color:var(--color-text);
 }
 
 #pageSelect option.active{
@@ -173,7 +177,7 @@ html,body{
   padding:0.375rem;
   box-shadow:var(--shadow);
   font-size:13px;
-  color:#fff;
+  color:var(--color-text);
   opacity:0;
   transform:scale(.95);
   pointer-events:none;
@@ -197,6 +201,7 @@ html,body{
   margin:-0.375rem -0.375rem 0.375rem -0.375rem;
   font-size:1.1rem;
   text-align:center;
+  color:var(--color-text);
 }
 
 #colorPick{
