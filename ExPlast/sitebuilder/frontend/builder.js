@@ -9,6 +9,7 @@ document.addEventListener('mousedown', e => {
   const handle = e.target.closest('.resize-handle');
   if (handle) {
     resizeItem = handle.parentElement;
+    resizeItem.classList.add('resizing');
     resizeDir = handle.dataset.dir || '';
     const p = resizeItem.parentElement.getBoundingClientRect();
     const r = resizeItem.getBoundingClientRect();
@@ -25,6 +26,7 @@ document.addEventListener('mousedown', e => {
   dx = e.clientX - r.left;
   dy = e.clientY - r.top;
   dragItem = el;
+  dragItem.classList.add('dragging');
   moved = false;
   e.preventDefault();
 });
@@ -80,11 +82,13 @@ document.addEventListener('mousemove', e => {
 
 document.addEventListener('mouseup', () => {
   if (resizeItem) {
+    resizeItem.classList.remove('resizing');
     builder.saveState();
     resizeItem = null;
     return;
   }
   if (dragItem && moved) builder.saveState();
+  if (dragItem) dragItem.classList.remove('dragging');
   dragItem = null;
 });
 

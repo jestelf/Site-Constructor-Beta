@@ -65,6 +65,8 @@ html,body{
   cursor:move;
   box-sizing:border-box;
 }
+.draggable.dragging{cursor:move;background:rgba(0,0,0,.1);}
+.draggable.resizing{cursor:nwse-resize;background:rgba(0,0,0,.1);}
 .selected{
   outline:2px dashed var(--color-primary);
 }
