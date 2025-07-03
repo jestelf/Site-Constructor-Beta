@@ -10,6 +10,7 @@
   --radius:6px;
   --shadow:0 4px 8px rgba(0,0,0,.3);
   --color-text:#fff;
+  --grid-color:rgba(0,0,0,0.2);
 }
 
 html.theme-light{
@@ -18,6 +19,7 @@ html.theme-light{
   --color-primary:#38b2ac;
   --color-primary-hover:#2d9c94;
   --color-text:#fff;
+  --grid-color:rgba(0,0,0,0.2);
 }
 
 html.theme-dark{
@@ -26,6 +28,7 @@ html.theme-dark{
   --color-primary:#4b86c2;
   --color-primary-hover:#3b6e9b;
   --color-text:#fff;
+  --grid-color:rgba(255,255,255,0.2);
 }
 
 html,body{
@@ -55,21 +58,22 @@ html,body{
 
 #canvas{
   height:calc(100vh - 3.375rem);
-  background:var(--color-bg);
+  background:#fff;
   margin:10px;
-  border-radius:var(--radius);
+  position:relative;
   box-shadow:var(--shadow);
 }
 
-#gridOverlay{
+#gridCanvas{
   position:absolute;
-  inset:0;
+  top:0;
+  right:0;
+  bottom:0;
+  left:0;
+  width:100%;
+  height:100%;
   pointer-events:none;
   z-index:2;
-  background-image:
-    repeating-linear-gradient(to right, rgba(0,0,0,.1) 0 1px, transparent 1px),
-    repeating-linear-gradient(to bottom, rgba(0,0,0,.1) 0 1px, transparent 1px);
-  background-size:20px 20px;
 }
 
 #rulers{
@@ -115,6 +119,7 @@ html,body{
   transition:background-color .2s;
 }
 .btn:hover{background:var(--color-primary-hover);}
+.btn.active{background:var(--color-primary-hover);}
 
 /* элементы, создаваемые редактором */
 .draggable{
@@ -321,6 +326,11 @@ html,body{
 #blocksBar{
   left:20px;
   right:auto;
+  background:var(--color-panel);
+  border:1px solid var(--color-primary-hover);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  color:var(--color-text);
 }
 
 .block-item{
@@ -344,6 +354,11 @@ html,body{
   right:auto;
   width:140px;
   top:80px;
+  background:var(--color-panel);
+  border:1px solid var(--color-primary-hover);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  color:var(--color-text);
 }
 
 #layersList{
@@ -392,6 +407,11 @@ html,body{
 #propsPanel{
   right:20px;
   top:80px;
+  background:var(--color-panel);
+  border:1px solid var(--color-primary-hover);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  color:var(--color-text);
 }
 #propsPanel label{
   display:flex;
@@ -412,4 +432,18 @@ html,body{
 }
 #propsPanel input[type="checkbox"]{
   margin-left:4px;
+}
+/* ───── Сетка поверх холста ───── */
+#canvas.show-grid::before{
+  content: "";
+  position: absolute;
+  inset: 0;                 /* во всю площадь холста */
+  pointer-events: none;     /* чтобы не мешать кликам */
+  z-index: 2;               /* под линейками, но над фоном */
+  background-image:
+    repeating-linear-gradient(to right,
+        var(--grid-color) 0 1px, transparent 1px var(--grid-step)),
+    repeating-linear-gradient(to bottom,
+        var(--grid-color) 0 1px, transparent 1px var(--grid-step));
+  background-size: var(--grid-step) var(--grid-step);
 }
