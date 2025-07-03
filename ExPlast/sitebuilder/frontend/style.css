@@ -233,6 +233,11 @@ html,body{
   top:70px;
 }
 
+#layersList{
+  max-height:200px;
+  overflow-y:auto;
+}
+
 #layersList li.selected{
   background:var(--color-primary);
   color:#fff;
