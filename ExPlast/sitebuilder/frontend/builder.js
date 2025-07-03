@@ -78,6 +78,7 @@ document.addEventListener('mousemove', e => {
     resizeItem.dataset.h = h;
     resizeItem.dataset.x = l;
     resizeItem.dataset.y = t;
+    builder.checkGuides(resizeItem);
     return;
   }
 
@@ -109,6 +110,7 @@ document.addEventListener('mousemove', e => {
     info.el.dataset.y = t;
   }
   builder.updateGroupBox();
+  builder.checkGuides(dragItem);
 });
 
 document.addEventListener('mouseup', () => {
@@ -116,6 +118,7 @@ document.addEventListener('mouseup', () => {
     resizeItem.classList.remove('resizing');
     builder.saveState();
     resizeItem = null;
+    builder.hideGuides();
     return;
   }
   if (dragItems.length && moved) builder.saveState();
@@ -126,6 +129,7 @@ document.addEventListener('mouseup', () => {
   dragItems = [];
   dragOffsets = [];
   builder.updateGroupBox();
+  builder.hideGuides();
 });
 
 // Создание блоков
@@ -267,6 +271,9 @@ class Builder {
     this.clipboard = null;
     this.theme = 'light';
     this.groupBox = null;
+    this.guideH = null;
+    this.guideV = null;
+    this.gridVisible = true;
   }
 
   setupDraggables() {
@@ -296,6 +303,8 @@ class Builder {
     this.cfgBgImage  = document.getElementById('cfgBgImage');
     this.cfgGrid     = document.getElementById('cfgGrid');
     this.gridOverlay = document.getElementById('gridOverlay');
+    this.guideH      = document.getElementById('guideH');
+    this.guideV      = document.getElementById('guideV');
     if (this.canvas) {
       this.groupBox = document.createElement('div');
       this.groupBox.id = 'groupSelectBox';
@@ -323,6 +332,7 @@ class Builder {
     this.propHrefRow = document.getElementById('propHrefRow');
     this.propTargetRow = document.getElementById('propTargetRow');
     this.btnTheme    = document.getElementById('btnTheme');
+    this.btnGrid     = document.getElementById('btnGrid');
 
     this.theme = localStorage.getItem('theme') || 'light';
     this.applyTheme(this.theme);
@@ -355,6 +365,10 @@ class Builder {
     this.btnExport.onclick  = () => this.exportProject();
     this.btnConfig.onclick  = () => this.toggleConfig();
     if (this.btnTheme) this.btnTheme.onclick = () => this.toggleTheme();
+    if (this.btnGrid) {
+      this.btnGrid.onclick = () => this.toggleGrid();
+      this.btnGrid.classList.toggle('active', this.gridVisible);
+    }
     this.pageSelect.onchange = () => this.switchPage(this.pageSelect.value);
     this.pageAdd.onclick    = () => this.addPage();
     this.pageDel.onclick    = () => this.deletePage();
@@ -480,6 +494,57 @@ class Builder {
     this.groupBox.style.top = (top - p.top) + 'px';
     this.groupBox.style.width = (right - left) + 'px';
     this.groupBox.style.height = (bottom - top) + 'px';
+  }
+
+  checkGuides(el) {
+    if (!this.guideH || !this.guideV || !this.canvas || !el) return;
+    const r = el.getBoundingClientRect();
+    const p = this.canvas.getBoundingClientRect();
+    const cx = p.left + p.width / 2;
+    const cy = p.top + p.height / 2;
+    let gx = null, gy = null;
+    for (const other of this.canvas.querySelectorAll('.draggable')) {
+      if (other === el) continue;
+      const or = other.getBoundingClientRect();
+      const ox = [or.left, or.right, or.left + or.width / 2];
+      const oy = [or.top, or.bottom, or.top + or.height / 2];
+      const rx = [r.left, r.right, r.left + r.width / 2];
+      const ry = [r.top, r.bottom, r.top + r.height / 2];
+      if (gx === null) {
+        for (const x of rx) if (ox.some(v => Math.abs(v - x) < 1)) { gx = x - p.left; break; }
+      }
+      if (gy === null) {
+        for (const y of ry) if (oy.some(v => Math.abs(v - y) < 1)) { gy = y - p.top; break; }
+      }
+      if (gx !== null && gy !== null) break;
+    }
+    if (gx === null) {
+      for (const x of [r.left, r.right, r.left + r.width / 2]) {
+        if (Math.abs(cx - x) < 1) { gx = x - p.left; break; }
+      }
+    }
+    if (gy === null) {
+      for (const y of [r.top, r.bottom, r.top + r.height / 2]) {
+        if (Math.abs(cy - y) < 1) { gy = y - p.top; break; }
+      }
+    }
+    if (gx !== null) {
+      this.guideV.style.left = gx + 'px';
+      this.guideV.style.display = 'block';
+    } else {
+      this.guideV.style.display = 'none';
+    }
+    if (gy !== null) {
+      this.guideH.style.top = gy + 'px';
+      this.guideH.style.display = 'block';
+    } else {
+      this.guideH.style.display = 'none';
+    }
+  }
+
+  hideGuides() {
+    if (this.guideH) this.guideH.style.display = 'none';
+    if (this.guideV) this.guideV.style.display = 'none';
   }
 
   async createProject() {
@@ -611,7 +676,7 @@ class Builder {
       }
       if (this.gridOverlay) {
         const step = parseInt(this.project.config.grid) || 0;
-        if (step > 0) {
+        if (step > 0 && this.gridVisible) {
           this.gridOverlay.style.backgroundSize = `${step}px ${step}px`;
           this.gridOverlay.style.display = '';
         } else {
@@ -633,6 +698,19 @@ class Builder {
   toggleTheme() {
     const next = this.theme === 'dark' ? 'light' : 'dark';
     this.applyTheme(next);
+  }
+
+  toggleGrid() {
+    this.gridVisible = !this.gridVisible;
+    if (this.gridOverlay) {
+      const step = parseInt(this.project.config.grid) || 0;
+      if (step > 0 && this.gridVisible) {
+        this.gridOverlay.style.display = '';
+      } else {
+        this.gridOverlay.style.display = 'none';
+      }
+    }
+    if (this.btnGrid) this.btnGrid.classList.toggle('active', this.gridVisible);
   }
 
   async toggleConfig() {
