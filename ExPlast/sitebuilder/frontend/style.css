@@ -44,7 +44,7 @@ html,body{
   box-shadow:var(--shadow);
 }
 
-#gridOverlay{
+#gridCanvas{
   position:absolute;
   top:0;
   right:0;
@@ -54,10 +54,6 @@ html,body{
   height:100%;
   pointer-events:none;
   z-index:2;
-  background-image:
-    repeating-linear-gradient(to right, rgba(0,0,0,.2) 0 1px, transparent 1px),
-    repeating-linear-gradient(to bottom, rgba(0,0,0,.2) 0 1px, transparent 1px);
-  background-size:20px 20px;
 }
 
 #rulers{
