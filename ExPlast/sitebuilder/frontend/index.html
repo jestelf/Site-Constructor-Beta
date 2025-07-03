@@ -79,6 +79,27 @@
     <label>Ширина: <input type="number" id="propWidth" min="1"></label>
     <label>Высота: <input type="number" id="propHeight" min="1"></label>
     <label>Размер шрифта: <input type="number" id="propFont" min="1"></label>
+    <label>Цвет текста: <input type="color" id="propColor"></label>
+    <label>Выравнивание:
+      <select id="propAlign">
+        <option value="left">Слева</option>
+        <option value="center">Центр</option>
+        <option value="right">Справа</option>
+        <option value="justify">По ширине</option>
+      </select>
+    </label>
+    <label>Семейство шрифта:
+      <select id="propFamily">
+        <option value="">По умолчанию</option>
+        <option value="Arial, sans-serif">Arial</option>
+        <option value="Tahoma, sans-serif">Tahoma</option>
+        <option value="'Times New Roman', serif">Times</option>
+      </select>
+    </label>
+    <label>Начертание:
+      <input type="checkbox" id="propBold" title="Жирный">B
+      <input type="checkbox" id="propItalic" title="Курсив" style="margin-left:4px;">I
+    </label>
     <label>Цвет заливки: <input type="color" id="propBg"></label>
   </div>
 

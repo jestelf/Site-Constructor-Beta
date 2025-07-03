@@ -268,6 +268,11 @@ class Builder {
     this.propW       = document.getElementById('propWidth');
     this.propH       = document.getElementById('propHeight');
     this.propFont    = document.getElementById('propFont');
+    this.propColor   = document.getElementById('propColor');
+    this.propAlign   = document.getElementById('propAlign');
+    this.propFamily  = document.getElementById('propFamily');
+    this.propBold    = document.getElementById('propBold');
+    this.propItalic  = document.getElementById('propItalic');
     this.propBg      = document.getElementById('propBg');
     this.btnTheme    = document.getElementById('btnTheme');
 
@@ -277,6 +282,11 @@ class Builder {
     if (this.propW)   this.propW.oninput   = () => this.changeProps();
     if (this.propH)   this.propH.oninput   = () => this.changeProps();
     if (this.propFont) this.propFont.oninput = () => this.changeProps();
+    if (this.propColor) this.propColor.oninput = () => this.changeProps();
+    if (this.propAlign) this.propAlign.onchange = () => this.changeProps();
+    if (this.propFamily) this.propFamily.onchange = () => this.changeProps();
+    if (this.propBold) this.propBold.onchange = () => this.changeProps();
+    if (this.propItalic) this.propItalic.onchange = () => this.changeProps();
     if (this.propBg)  this.propBg.oninput  = () => this.changeProps();
     if (this.cfgGrid) this.cfgGrid.oninput = () => {
       this.project.config.grid = parseInt(this.cfgGrid.value) || 0;
@@ -579,6 +589,31 @@ class Builder {
         this.selected.dataset.fs = fs;
       }
     }
+    if (this.propColor) {
+      const c = this.propColor.value;
+      this.selected.style.color = c;
+      this.selected.dataset.color = c;
+    }
+    if (this.propAlign) {
+      const al = this.propAlign.value;
+      this.selected.style.textAlign = al;
+      this.selected.dataset.textAlign = al;
+    }
+    if (this.propFamily) {
+      const ff = this.propFamily.value;
+      this.selected.style.fontFamily = ff || '';
+      this.selected.dataset.fontFamily = ff;
+    }
+    if (this.propBold) {
+      const w = this.propBold.checked ? 'bold' : 'normal';
+      this.selected.style.fontWeight = w;
+      this.selected.dataset.fontWeight = w;
+    }
+    if (this.propItalic) {
+      const st = this.propItalic.checked ? 'italic' : 'normal';
+      this.selected.style.fontStyle = st;
+      this.selected.dataset.fontStyle = st;
+    }
     if (this.propBg) {
       const bg = this.propBg.value;
       this.selected.style.backgroundColor = bg;
@@ -667,6 +702,11 @@ class Builder {
       if (this.propW) this.propW.value = '';
       if (this.propH) this.propH.value = '';
       if (this.propFont) this.propFont.value = '';
+      if (this.propColor) this.propColor.value = '#000000';
+      if (this.propAlign) this.propAlign.value = 'left';
+      if (this.propFamily) this.propFamily.value = '';
+      if (this.propBold) this.propBold.checked = false;
+      if (this.propItalic) this.propItalic.checked = false;
       if (this.propBg) this.propBg.value = '#ffffff';
       this.updateLayers();
       return;
@@ -709,6 +749,17 @@ class Builder {
     if (this.propW) this.propW.value = parseInt(el.dataset.w || cs.width);
     if (this.propH) this.propH.value = parseInt(el.dataset.h || cs.height);
     if (this.propFont) this.propFont.value = parseInt(el.dataset.fs || cs.fontSize);
+    if (this.propColor) {
+      let colHex = '#000000';
+      const c = el.dataset.color || cs.color;
+      const nums = (c || '').match(/\d+/g);
+      if (nums) colHex = '#' + nums.slice(0,3).map(x => (+x).toString(16).padStart(2,'0')).join('');
+      this.propColor.value = colHex;
+    }
+    if (this.propAlign) this.propAlign.value = el.dataset.textAlign || cs.textAlign;
+    if (this.propFamily) this.propFamily.value = el.dataset.fontFamily || cs.fontFamily.replace(/"/g, '');
+    if (this.propBold) this.propBold.checked = (el.dataset.fontWeight || cs.fontWeight) === 'bold' || parseInt(el.dataset.fontWeight || cs.fontWeight) >= 700;
+    if (this.propItalic) this.propItalic.checked = (el.dataset.fontStyle || cs.fontStyle) === 'italic';
     if (this.propBg) {
       let bgHex = '#ffffff';
       const bg = el.dataset.bg || cs.backgroundColor;
