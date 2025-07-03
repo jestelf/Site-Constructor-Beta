@@ -289,6 +289,8 @@ class Builder {
     this.canvas      = document.getElementById('canvas');
     this.btnCreate   = document.getElementById('btnCreate');
     this.btnLoad     = document.getElementById('btnLoad');
+    this.btnImport   = document.getElementById('btnImport');
+    this.fileImport  = document.getElementById('fileImport');
     this.btnSave     = document.getElementById('btnSave');
     this.btnExport   = document.getElementById('btnExport');
     this.btnConfig   = document.getElementById('btnConfig');
@@ -363,6 +365,8 @@ class Builder {
 
     this.btnCreate.onclick  = () => this.createProject();
     this.btnLoad.onclick    = () => this.loadProject();
+    if (this.btnImport) this.btnImport.onclick = () => this.fileImport?.click();
+    if (this.fileImport) this.fileImport.onchange = () => this.importProject();
     this.btnSave.onclick    = () => this.saveProject();
     this.btnExport.onclick  = () => this.exportProject();
     this.btnConfig.onclick  = () => this.toggleConfig();
@@ -609,6 +613,40 @@ class Builder {
       Object.assign(document.createElement('a'), { href: u, download: 'site.zip' }).click();
       URL.revokeObjectURL(u);
     } catch { alert('Ошибка экспорта'); }
+  }
+
+  async importProject() {
+    const file = this.fileImport?.files?.[0];
+    if (!file) return;
+    try {
+      if (file.name.toLowerCase().endsWith('.json')) {
+        const data = JSON.parse(await file.text());
+        this.project = data.project || data;
+      } else if (file.name.toLowerCase().endsWith('.zip')) {
+        const zip = await JSZip.loadAsync(file);
+        const pages = {};
+        for (const name of Object.keys(zip.files)) {
+          if (name.toLowerCase().endsWith('.html')) {
+            const html = await zip.files[name].async('text');
+            pages[name.replace(/\.html$/i, '')] = { html };
+          }
+        }
+        this.project = { id: null, name: file.name.replace(/\.zip$/i, ''), pages, config: { bgColor: '#fafafa', grid: 20, bgImage: '' } };
+      } else {
+        alert('Неизвестный формат');
+        return;
+      }
+      if (!this.project.config) this.project.config = { bgColor: '#fafafa', grid: 20, bgImage: '' };
+      this.pages = Object.keys(this.project.pages);
+      this.updateSelect();
+      this.switchPage(this.pages[0]);
+      this.applyConfig();
+      this.setupDraggables();
+    } catch {
+      alert('Ошибка импорта');
+    } finally {
+      this.fileImport.value = '';
+    }
   }
 
   addPage() {
