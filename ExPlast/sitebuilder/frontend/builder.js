@@ -302,7 +302,7 @@ class Builder {
     this.cfgBg       = document.getElementById('cfgBg');
     this.cfgBgImage  = document.getElementById('cfgBgImage');
     this.cfgGrid     = document.getElementById('cfgGrid');
-    this.gridOverlay = document.getElementById('gridOverlay');
+    this.gridCanvas  = document.getElementById('gridCanvas');
     this.guideH      = document.getElementById('guideH');
     this.guideV      = document.getElementById('guideV');
     if (this.canvas) {
@@ -369,6 +369,7 @@ class Builder {
       this.btnGrid.onclick = () => this.toggleGrid();
       this.btnGrid.classList.toggle('active', this.gridVisible);
     }
+    window.addEventListener('resize', () => this.drawGrid());
     this.pageSelect.onchange = () => this.switchPage(this.pageSelect.value);
     this.pageAdd.onclick    = () => this.addPage();
     this.pageDel.onclick    = () => this.deletePage();
@@ -661,6 +662,7 @@ class Builder {
     this.setupDraggables();
     this.updateLayers();
     this.saveState();
+    this.drawGrid();
   }
 
   applyConfig() {
@@ -674,17 +676,7 @@ class Builder {
       } else {
         this.canvas.style.backgroundImage = '';
       }
-      if (this.gridOverlay) {
-        const step = parseInt(this.project.config.grid) || 0;
-        this.gridOverlay.style.backgroundSize = `${step}px ${step}px`;
-        if (!this.gridVisible) {
-          this.gridOverlay.style.display = 'none';
-        } else if (step > 0) {
-          this.gridOverlay.style.display = '';
-        } else {
-          this.gridOverlay.style.display = 'none';
-        }
-      }
+      this.drawGrid();
     }
   }
 
@@ -702,17 +694,39 @@ class Builder {
     this.applyTheme(next);
   }
 
+  drawGrid() {
+    if (!this.gridCanvas || !this.canvas) return;
+    const step = parseInt(this.project.config.grid) || 0;
+    const ctx = this.gridCanvas.getContext('2d');
+    const w = this.canvas.clientWidth;
+    const h = this.canvas.clientHeight;
+    this.gridCanvas.width = w;
+    this.gridCanvas.height = h;
+    ctx.clearRect(0, 0, w, h);
+    if (!this.gridVisible || step <= 0) {
+      this.gridCanvas.style.display = 'none';
+      return;
+    }
+    ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x <= w; x += step) {
+      ctx.beginPath();
+      ctx.moveTo(x + 0.5, 0);
+      ctx.lineTo(x + 0.5, h);
+      ctx.stroke();
+    }
+    for (let y = 0; y <= h; y += step) {
+      ctx.beginPath();
+      ctx.moveTo(0, y + 0.5);
+      ctx.lineTo(w, y + 0.5);
+      ctx.stroke();
+    }
+    this.gridCanvas.style.display = '';
+  }
+
   toggleGrid() {
     this.gridVisible = !this.gridVisible;
-    if (this.gridOverlay) {
-      const step = parseInt(this.project.config.grid) || 0;
-      this.gridOverlay.style.backgroundSize = `${step}px ${step}px`;
-      if (step > 0 && this.gridVisible) {
-        this.gridOverlay.style.display = '';
-      } else {
-        this.gridOverlay.style.display = 'none';
-      }
-    }
+    this.drawGrid();
     if (this.btnGrid) this.btnGrid.classList.toggle('active', this.gridVisible);
   }
 
