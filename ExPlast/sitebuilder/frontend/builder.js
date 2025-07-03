@@ -677,6 +677,8 @@ class Builder {
     }
     if (this.canvas) {
       this.canvas.style.background = this.project.config.bgColor || '#ffffff';
+      const step = this.project.config.grid || 20;        // 20-px по умолчанию
+      this.canvas.style.setProperty('--grid-step', step + 'px');
       if (this.project.config.bgImage) {
         this.canvas.style.backgroundImage = `url('${this.project.config.bgImage}')`;
       } else {
@@ -700,42 +702,65 @@ class Builder {
     this.applyTheme(next);
   }
 
+ /* ───────────────────────── drawGrid ───────────────────────── */
   drawGrid() {
     if (!this.gridCanvas || !this.canvas) return;
+
     const step = parseInt(this.project.config.grid) || 0;
-    const ctx = this.gridCanvas.getContext('2d');
-    const w = this.canvas.clientWidth;
-    const h = this.canvas.clientHeight;
-    this.gridCanvas.width = w;
+    const { width: w, height: h } = this.canvas.getBoundingClientRect();
+    if (!w || !h) return;             // прорисуем, когда размеры будут ненулевые
+
+
+    /* 1. Синхронизируем реальные и CSS-размеры <canvas>,
+          иначе браузер будет масштабировать изображение,
+          и сетка займёт лишь часть холста. */
+    this.gridCanvas.width  = w;
     this.gridCanvas.height = h;
+    this.gridCanvas.style.width  = w + 'px';
+    this.gridCanvas.style.height = h + 'px';
+
+    const ctx = this.gridCanvas.getContext('2d');
     ctx.clearRect(0, 0, w, h);
+
+    /* 2. При скрытой сетке просто прячем canvas */
     if (!this.gridVisible || step <= 0) {
       this.gridCanvas.style.display = 'none';
       return;
     }
-    const color = getComputedStyle(this.gridCanvas).getPropertyValue('--grid-color');
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 1;
-    for (let x = 0; x <= w; x += step) {
-      ctx.beginPath();
-      ctx.moveTo(x + 0.5, 0);
-      ctx.lineTo(x + 0.5, h);
-      ctx.stroke();
-    }
-    for (let y = 0; y <= h; y += step) {
-      ctx.beginPath();
-      ctx.moveTo(0, y + 0.5);
-      ctx.lineTo(w, y + 0.5);
-      ctx.stroke();
-    }
     this.gridCanvas.style.display = '';
-  }
 
+    /* 3. Отрисовываем сетку во всю площадь холста */
+    ctx.strokeStyle = getComputedStyle(this.gridCanvas)
+                        .getPropertyValue('--grid-color').trim();
+    ctx.lineWidth   = 1;
+
+    for (let x = 0.5; x < w; x += step) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, h);
+      ctx.stroke();
+    }
+    for (let y = 0.5; y < h; y += step) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(w, y);
+      ctx.stroke();
+    }
+  }
   toggleGrid() {
     this.gridVisible = !this.gridVisible;
-    this.drawGrid();
-    if (this.btnGrid) this.btnGrid.classList.toggle('active', this.gridVisible);
+
+    if (this.gridVisible) {
+      this.canvas.classList.add('show-grid');
+    } else {
+      this.canvas.classList.remove('show-grid');
+    }
+
+    /* визуальное состояние кнопки */
+    if (this.btnGrid)
+        this.btnGrid.classList.toggle('active', this.gridVisible);
   }
+
 
   async toggleConfig() {
     if (this.configPanel.classList.contains('open')) {

@@ -401,3 +401,17 @@ html,body{
 #propsPanel input[type="checkbox"]{
   margin-left:4px;
 }
+/* ───── Сетка поверх холста ───── */
+#canvas.show-grid::before{
+  content: "";
+  position: absolute;
+  inset: 0;                 /* во всю площадь холста */
+  pointer-events: none;     /* чтобы не мешать кликам */
+  z-index: 2;               /* под линейками, но над фоном */
+  background-image:
+    repeating-linear-gradient(to right,
+        var(--grid-color) 0 1px, transparent 1px var(--grid-step)),
+    repeating-linear-gradient(to bottom,
+        var(--grid-color) 0 1px, transparent 1px var(--grid-step));
+  background-size: var(--grid-step) var(--grid-step);
+}
