@@ -8,6 +8,8 @@ let resizeItem = null, resizeDir = '', rx = 0, ry = 0, rw = 0, rh = 0, rl = 0, r
 let selectedItem = null;
 const anchorRight = document.getElementById('anchorRight');
 const anchorBottom = document.getElementById('anchorBottom');
+const AUTO_SAVE_KEY = 'builderAutosave';
+const AUTO_SAVE_INTERVAL = 10000;
 
 document.addEventListener('mousedown', e => {
   const handle = e.target.closest('.resize-handle');
@@ -259,7 +261,7 @@ class Builder {
       id: null,
       name: '',
       pages: { index: { html: '' } },
-      config: { bgColor: '#fafafa', grid: 20, bgImage: '' }
+      config: { bgColor: '#ffffff', grid: 20, bgImage: '' }
     };
     this.pages = ['index'];
     this.current = 'index';
@@ -275,7 +277,9 @@ class Builder {
     this.previewMode = false;
     this.guideH = null;
     this.guideV = null;
-
+    this.autosaveTimer = null;
+    this.gridVisible = false;
+    this.canvasObserver = null;
   }
 
   setupDraggables() {
@@ -287,6 +291,11 @@ class Builder {
 
   init() {
     this.canvas      = document.getElementById('canvas');
+    if (this.canvas) {
+      this.canvasObserver?.disconnect();
+      this.canvasObserver = new ResizeObserver(() => this.drawGrid());
+      this.canvasObserver.observe(this.canvas);
+    }
     this.btnCreate   = document.getElementById('btnCreate');
     this.btnLoad     = document.getElementById('btnLoad');
     this.btnImport   = document.getElementById('btnImport');
@@ -307,7 +316,7 @@ class Builder {
     this.cfgBg       = document.getElementById('cfgBg');
     this.cfgBgImage  = document.getElementById('cfgBgImage');
     this.cfgGrid     = document.getElementById('cfgGrid');
-    this.gridOverlay = document.getElementById('gridOverlay');
+    this.gridCanvas  = document.getElementById('gridCanvas');
     this.guideH      = document.getElementById('guideH');
     this.guideV      = document.getElementById('guideV');
     if (this.canvas) {
@@ -337,9 +346,30 @@ class Builder {
     this.propHrefRow = document.getElementById('propHrefRow');
     this.propTargetRow = document.getElementById('propTargetRow');
     this.btnTheme    = document.getElementById('btnTheme');
+    this.btnGrid     = document.getElementById('btnGrid');
 
     this.theme = localStorage.getItem('theme') || 'light';
     this.applyTheme(this.theme);
+
+    let restored = false;
+    const saved = localStorage.getItem(AUTO_SAVE_KEY);
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        if (confirm('Обнаружена сохранённая копия. Восстановить?')) {
+          this.project = data.project || this.project;
+          if (!this.project.config) this.project.config = { bgColor: '#fafafa', grid: 20, bgImage: '' };
+          this.pages = Object.keys(this.project.pages);
+          restored = true;
+          this.updateSelect();
+          this.switchPage(data.current || this.pages[0]);
+          this.applyConfig();
+          this.setupDraggables();
+        } else {
+          localStorage.removeItem(AUTO_SAVE_KEY);
+        }
+      } catch {}
+    }
 
     if (this.propW)   this.propW.oninput   = () => this.changeProps();
     if (this.propH)   this.propH.oninput   = () => this.changeProps();
@@ -372,6 +402,11 @@ class Builder {
     this.btnConfig.onclick  = () => this.toggleConfig();
     if (this.btnPreview) this.btnPreview.onclick = () => this.togglePreview();
     if (this.btnTheme) this.btnTheme.onclick = () => this.toggleTheme();
+    if (this.btnGrid) {
+      this.btnGrid.onclick = () => this.toggleGrid();
+      this.btnGrid.classList.toggle('active', this.gridVisible);
+    }
+    window.addEventListener('resize', () => this.drawGrid());
     this.pageSelect.onchange = () => this.switchPage(this.pageSelect.value);
     this.pageAdd.onclick    = () => this.addPage();
     this.pageDel.onclick    = () => this.deletePage();
@@ -412,11 +447,14 @@ class Builder {
       }
     });
 
-    this.updateSelect();
-    this.switchPage('index');
-    this.setupDraggables();
-    this.applyConfig();
+    if (!restored) {
+      this.updateSelect();
+      this.switchPage('index');
+      this.setupDraggables();
+      this.applyConfig();
+    }
     this.saveState();
+    this.startAutosave();
 
     document.addEventListener('keydown', e => {
       if (e.target.closest('input, textarea') || e.target.isContentEditable) return;
@@ -574,13 +612,14 @@ class Builder {
       id: null,
       name,
       pages: { index: { html: '' } },
-      config: { bgColor: '#fafafa', grid: 20, bgImage: '' }
+      config: { bgColor: '#ffffff', grid: 20, bgImage: '' }
     };
     this.pages = ['index'];
     this.updateSelect();
     this.switchPage('index');
     this.setupDraggables();
     this.applyConfig();
+    this.startAutosave();
   }
 
   async loadProject() {
@@ -592,13 +631,14 @@ class Builder {
         id: pr.id,
         name: pr.name,
         pages: pr.data.pages || { index: { html: '' } },
-        config: pr.data.config || { bgColor: '#fafafa', grid: 20, bgImage: '' }
+        config: pr.data.config || { bgColor: '#ffffff', grid: 20, bgImage: '' }
       };
       if (this.project.config.bgImage === undefined) this.project.config.bgImage = '';
       this.pages = Object.keys(this.project.pages);
       this.updateSelect();
       this.switchPage(this.pages[0]);
       this.applyConfig();
+      this.startAutosave();
       } catch { alert('Нет проекта'); }
   }
 
@@ -623,7 +663,10 @@ class Builder {
         data: { pages: this.project.pages, config: this.project.config },
       });
     }
-    if (!silent) alert('Сохранено');
+    localStorage.removeItem(AUTO_SAVE_KEY);
+    this.stopAutosave();
+    this.startAutosave();
+    alert('Сохранено');
   }
 
   async exportProject() {
@@ -667,6 +710,7 @@ class Builder {
       alert('Ошибка импорта');
     } finally {
       this.fileImport.value = '';
+      this.startAutosave();
     }
   }
 
@@ -719,28 +763,23 @@ class Builder {
     this.setupDraggables();
     this.updateLayers();
     this.saveState();
+    this.drawGrid();
   }
 
   applyConfig() {
     if (!this.project.config) {
-      this.project.config = { bgColor: '#fafafa', grid: 20, bgImage: '' };
+      this.project.config = { bgColor: '#ffffff', grid: 20, bgImage: '' };
     }
     if (this.canvas) {
-      this.canvas.style.background = this.project.config.bgColor || '#fafafa';
+      this.canvas.style.background = this.project.config.bgColor || '#ffffff';
+      const step = this.project.config.grid || 20;        // 20-px по умолчанию
+      this.canvas.style.setProperty('--grid-step', step + 'px');
       if (this.project.config.bgImage) {
         this.canvas.style.backgroundImage = `url('${this.project.config.bgImage}')`;
       } else {
         this.canvas.style.backgroundImage = '';
       }
-      if (this.gridOverlay) {
-        const step = parseInt(this.project.config.grid) || 0;
-        if (step > 0) {
-          this.gridOverlay.style.backgroundSize = `${step}px ${step}px`;
-          this.gridOverlay.style.display = '';
-        } else {
-          this.gridOverlay.style.display = 'none';
-        }
-      }
+      this.drawGrid();
     }
   }
 
@@ -757,6 +796,66 @@ class Builder {
     const next = this.theme === 'dark' ? 'light' : 'dark';
     this.applyTheme(next);
   }
+
+ /* ───────────────────────── drawGrid ───────────────────────── */
+  drawGrid() {
+    if (!this.gridCanvas || !this.canvas) return;
+
+    const step = parseInt(this.project.config.grid) || 0;
+    const { width: w, height: h } = this.canvas.getBoundingClientRect();
+    if (!w || !h) return;             // прорисуем, когда размеры будут ненулевые
+
+
+    /* 1. Синхронизируем реальные и CSS-размеры <canvas>,
+          иначе браузер будет масштабировать изображение,
+          и сетка займёт лишь часть холста. */
+    this.gridCanvas.width  = w;
+    this.gridCanvas.height = h;
+    this.gridCanvas.style.width  = w + 'px';
+    this.gridCanvas.style.height = h + 'px';
+
+    const ctx = this.gridCanvas.getContext('2d');
+    ctx.clearRect(0, 0, w, h);
+
+    /* 2. При скрытой сетке просто прячем canvas */
+    if (!this.gridVisible || step <= 0) {
+      this.gridCanvas.style.display = 'none';
+      return;
+    }
+    this.gridCanvas.style.display = '';
+
+    /* 3. Отрисовываем сетку во всю площадь холста */
+    ctx.strokeStyle = getComputedStyle(this.gridCanvas)
+                        .getPropertyValue('--grid-color').trim();
+    ctx.lineWidth   = 1;
+
+    for (let x = 0.5; x < w; x += step) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, h);
+      ctx.stroke();
+    }
+    for (let y = 0.5; y < h; y += step) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(w, y);
+      ctx.stroke();
+    }
+  }
+  toggleGrid() {
+    this.gridVisible = !this.gridVisible;
+
+    if (this.gridVisible) {
+      this.canvas.classList.add('show-grid');
+    } else {
+      this.canvas.classList.remove('show-grid');
+    }
+
+    /* визуальное состояние кнопки */
+    if (this.btnGrid)
+        this.btnGrid.classList.toggle('active', this.gridVisible);
+  }
+
 
   async toggleConfig() {
     if (this.configPanel.classList.contains('open')) {
@@ -906,6 +1005,7 @@ class Builder {
     if (!this.canvas) return;
     this.undoStack.push(this.canvas.innerHTML);
     this.redoStack.length = 0;
+    this.autosave();
   }
 
   undo() {
@@ -973,7 +1073,6 @@ class Builder {
     this.updateLayers();
     this.saveState();
   }
-
   duplicateSelected() {
     if (!this.canvas || !this.selectedItems.length) return;
     const clones = [];
@@ -998,6 +1097,22 @@ class Builder {
     for (const c of clones) this.selectElement(c, true);
     this.updateLayers();
     this.saveState();
+  autosave() {
+    if (!this.canvas) return;
+    this.project.pages[this.current].html = this.canvas.innerHTML;
+    localStorage.setItem(AUTO_SAVE_KEY, JSON.stringify({
+      project: this.project,
+      current: this.current,
+    }));
+  }
+
+  startAutosave() {
+    clearInterval(this.autosaveTimer);
+    this.autosaveTimer = setInterval(() => this.autosave(), AUTO_SAVE_INTERVAL);
+  }
+
+  stopAutosave() {
+    clearInterval(this.autosaveTimer);
   }
 
   togglePreview() {
@@ -1010,11 +1125,17 @@ class Builder {
         if (this.configPanel.dataset.wasOpen === '1') this.configPanel.classList.add('open');
         this.configPanel.dataset.wasOpen = '';
       }
+      if (this.gridOverlay) {
+        const prev = this.gridOverlay.dataset.prevDisplay;
+        this.gridOverlay.style.display = prev || '';
+        this.gridOverlay.dataset.prevDisplay = '';
+      }
       if (this.previewWindow && !this.previewWindow.closed) this.previewWindow.close();
       this.previewWindow = null;
       this.previewMode = false;
       return;
     }
+
     document.querySelectorAll('.toolbar').forEach(el => {
       el.dataset.wasOpen = el.classList.contains('open') ? '1' : '0';
       el.classList.remove('open');
@@ -1023,11 +1144,20 @@ class Builder {
       this.configPanel.dataset.wasOpen = this.configPanel.classList.contains('open') ? '1' : '0';
       this.configPanel.classList.remove('open');
     }
+    if (this.gridOverlay) {
+      this.gridOverlay.dataset.prevDisplay = this.gridOverlay.style.display;
+      this.gridOverlay.style.display = 'none';
+    }
+
     const html = this.buildPreviewHTML();
-    this.previewWindow = window.open('', '_blank');
+    this.previewWindow = window.open('', '', 'width=800,height=600,resizable=yes,scrollbars=yes');
     if (this.previewWindow) {
       this.previewWindow.document.write(html);
       this.previewWindow.document.close();
+      this.previewWindow.onbeforeunload = () => {
+        this.previewWindow = null;
+        if (this.previewMode) this.togglePreview();
+      };
     }
     this.previewMode = true;
   }
