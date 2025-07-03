@@ -278,6 +278,10 @@ class Builder {
     this.propAlt     = document.getElementById('propAlt');
     this.propSrcRow  = document.getElementById('propSrcRow');
     this.propAltRow  = document.getElementById('propAltRow');
+    this.propHref    = document.getElementById('propHref');
+    this.propTarget  = document.getElementById('propTarget');
+    this.propHrefRow = document.getElementById('propHrefRow');
+    this.propTargetRow = document.getElementById('propTargetRow');
     this.btnTheme    = document.getElementById('btnTheme');
 
     this.theme = localStorage.getItem('theme') || 'light';
@@ -294,6 +298,8 @@ class Builder {
     if (this.propBg)  this.propBg.oninput  = () => this.changeProps();
     if (this.propSrc) this.propSrc.oninput = () => this.changeProps();
     if (this.propAlt) this.propAlt.oninput = () => this.changeProps();
+    if (this.propHref) this.propHref.oninput = () => this.changeProps();
+    if (this.propTarget) this.propTarget.onchange = () => this.changeProps();
     if (this.cfgGrid) this.cfgGrid.oninput = () => {
       this.project.config.grid = parseInt(this.cfgGrid.value) || 0;
       this.applyConfig();
@@ -640,6 +646,22 @@ class Builder {
         }
       }
     }
+    if (this.selected.classList.contains('block-button') || this.selected.tagName.toLowerCase() === 'a') {
+      if (this.propHref) {
+        const href = this.propHref.value.trim() || '#';
+        this.selected.setAttribute('href', href);
+        this.selected.dataset.href = href;
+      }
+      if (this.propTarget) {
+        if (this.propTarget.checked) {
+          this.selected.setAttribute('target', '_blank');
+          this.selected.dataset.target = '_blank';
+        } else {
+          this.selected.removeAttribute('target');
+          delete this.selected.dataset.target;
+        }
+      }
+    }
     this.saveState();
   }
 
@@ -733,6 +755,10 @@ class Builder {
       if (this.propAlt) this.propAlt.value = '';
       if (this.propSrcRow) this.propSrcRow.style.display = 'none';
       if (this.propAltRow) this.propAltRow.style.display = 'none';
+      if (this.propHref) this.propHref.value = '';
+      if (this.propTarget) this.propTarget.checked = false;
+      if (this.propHrefRow) this.propHrefRow.style.display = 'none';
+      if (this.propTargetRow) this.propTargetRow.style.display = 'none';
       this.updateLayers();
       return;
     }
@@ -805,6 +831,17 @@ class Builder {
       if (this.propAltRow) this.propAltRow.style.display = 'none';
       if (this.propSrc) this.propSrc.value = '';
       if (this.propAlt) this.propAlt.value = '';
+    }
+    if (el.classList.contains('block-button') || el.tagName.toLowerCase() === 'a') {
+      if (this.propHrefRow) this.propHrefRow.style.display = '';
+      if (this.propTargetRow) this.propTargetRow.style.display = '';
+      if (this.propHref) this.propHref.value = el.dataset.href || el.getAttribute('href') || '';
+      if (this.propTarget) this.propTarget.checked = (el.dataset.target || el.getAttribute('target')) === '_blank';
+    } else {
+      if (this.propHrefRow) this.propHrefRow.style.display = 'none';
+      if (this.propTargetRow) this.propTargetRow.style.display = 'none';
+      if (this.propHref) this.propHref.value = '';
+      if (this.propTarget) this.propTarget.checked = false;
     }
     this.updateLayers();
   }
