@@ -78,6 +78,7 @@ document.addEventListener('mousemove', e => {
     resizeItem.dataset.h = h;
     resizeItem.dataset.x = l;
     resizeItem.dataset.y = t;
+    builder.checkGuides(resizeItem);
     return;
   }
 
@@ -109,6 +110,7 @@ document.addEventListener('mousemove', e => {
     info.el.dataset.y = t;
   }
   builder.updateGroupBox();
+  builder.checkGuides(dragItem);
 });
 
 document.addEventListener('mouseup', () => {
@@ -116,6 +118,7 @@ document.addEventListener('mouseup', () => {
     resizeItem.classList.remove('resizing');
     builder.saveState();
     resizeItem = null;
+    builder.hideGuides();
     return;
   }
   if (dragItems.length && moved) builder.saveState();
@@ -126,6 +129,7 @@ document.addEventListener('mouseup', () => {
   dragItems = [];
   dragOffsets = [];
   builder.updateGroupBox();
+  builder.hideGuides();
 });
 
 // Создание блоков
@@ -255,7 +259,7 @@ class Builder {
       id: null,
       name: '',
       pages: { index: { html: '' } },
-      config: { bgColor: '#fafafa', grid: 20, bgImage: '' }
+      config: { bgColor: '#ffffff', grid: 20, bgImage: '' }
     };
     this.pages = ['index'];
     this.current = 'index';
@@ -269,6 +273,10 @@ class Builder {
     this.groupBox = null;
     this.previewWindow = null;
     this.previewMode = false;
+    this.guideH = null;
+    this.guideV = null;
+    this.gridVisible = false;
+    this.canvasObserver = null;
   }
 
   setupDraggables() {
@@ -280,6 +288,11 @@ class Builder {
 
   init() {
     this.canvas      = document.getElementById('canvas');
+    if (this.canvas) {
+      this.canvasObserver?.disconnect();
+      this.canvasObserver = new ResizeObserver(() => this.drawGrid());
+      this.canvasObserver.observe(this.canvas);
+    }
     this.btnCreate   = document.getElementById('btnCreate');
     this.btnLoad     = document.getElementById('btnLoad');
     this.btnSave     = document.getElementById('btnSave');
@@ -298,7 +311,9 @@ class Builder {
     this.cfgBg       = document.getElementById('cfgBg');
     this.cfgBgImage  = document.getElementById('cfgBgImage');
     this.cfgGrid     = document.getElementById('cfgGrid');
-    this.gridOverlay = document.getElementById('gridOverlay');
+    this.gridCanvas  = document.getElementById('gridCanvas');
+    this.guideH      = document.getElementById('guideH');
+    this.guideV      = document.getElementById('guideV');
     if (this.canvas) {
       this.groupBox = document.createElement('div');
       this.groupBox.id = 'groupSelectBox';
@@ -326,6 +341,7 @@ class Builder {
     this.propHrefRow = document.getElementById('propHrefRow');
     this.propTargetRow = document.getElementById('propTargetRow');
     this.btnTheme    = document.getElementById('btnTheme');
+    this.btnGrid     = document.getElementById('btnGrid');
 
     this.theme = localStorage.getItem('theme') || 'light';
     this.applyTheme(this.theme);
@@ -359,6 +375,11 @@ class Builder {
     this.btnConfig.onclick  = () => this.toggleConfig();
     if (this.btnPreview) this.btnPreview.onclick = () => this.togglePreview();
     if (this.btnTheme) this.btnTheme.onclick = () => this.toggleTheme();
+    if (this.btnGrid) {
+      this.btnGrid.onclick = () => this.toggleGrid();
+      this.btnGrid.classList.toggle('active', this.gridVisible);
+    }
+    window.addEventListener('resize', () => this.drawGrid());
     this.pageSelect.onchange = () => this.switchPage(this.pageSelect.value);
     this.pageAdd.onclick    = () => this.addPage();
     this.pageDel.onclick    = () => this.deletePage();
@@ -486,6 +507,57 @@ class Builder {
     this.groupBox.style.height = (bottom - top) + 'px';
   }
 
+  checkGuides(el) {
+    if (!this.guideH || !this.guideV || !this.canvas || !el) return;
+    const r = el.getBoundingClientRect();
+    const p = this.canvas.getBoundingClientRect();
+    const cx = p.left + p.width / 2;
+    const cy = p.top + p.height / 2;
+    let gx = null, gy = null;
+    for (const other of this.canvas.querySelectorAll('.draggable')) {
+      if (other === el) continue;
+      const or = other.getBoundingClientRect();
+      const ox = [or.left, or.right, or.left + or.width / 2];
+      const oy = [or.top, or.bottom, or.top + or.height / 2];
+      const rx = [r.left, r.right, r.left + r.width / 2];
+      const ry = [r.top, r.bottom, r.top + r.height / 2];
+      if (gx === null) {
+        for (const x of rx) if (ox.some(v => Math.abs(v - x) < 1)) { gx = x - p.left; break; }
+      }
+      if (gy === null) {
+        for (const y of ry) if (oy.some(v => Math.abs(v - y) < 1)) { gy = y - p.top; break; }
+      }
+      if (gx !== null && gy !== null) break;
+    }
+    if (gx === null) {
+      for (const x of [r.left, r.right, r.left + r.width / 2]) {
+        if (Math.abs(cx - x) < 1) { gx = x - p.left; break; }
+      }
+    }
+    if (gy === null) {
+      for (const y of [r.top, r.bottom, r.top + r.height / 2]) {
+        if (Math.abs(cy - y) < 1) { gy = y - p.top; break; }
+      }
+    }
+    if (gx !== null) {
+      this.guideV.style.left = gx + 'px';
+      this.guideV.style.display = 'block';
+    } else {
+      this.guideV.style.display = 'none';
+    }
+    if (gy !== null) {
+      this.guideH.style.top = gy + 'px';
+      this.guideH.style.display = 'block';
+    } else {
+      this.guideH.style.display = 'none';
+    }
+  }
+
+  hideGuides() {
+    if (this.guideH) this.guideH.style.display = 'none';
+    if (this.guideV) this.guideV.style.display = 'none';
+  }
+
   async createProject() {
     const name = prompt('Название проекта', 'Сайт');
     if (!name) return;
@@ -493,7 +565,7 @@ class Builder {
       id: null,
       name,
       pages: { index: { html: '' } },
-      config: { bgColor: '#fafafa', grid: 20, bgImage: '' }
+      config: { bgColor: '#ffffff', grid: 20, bgImage: '' }
     };
     this.pages = ['index'];
     this.updateSelect();
@@ -511,7 +583,7 @@ class Builder {
         id: pr.id,
         name: pr.name,
         pages: pr.data.pages || { index: { html: '' } },
-        config: pr.data.config || { bgColor: '#fafafa', grid: 20, bgImage: '' }
+        config: pr.data.config || { bgColor: '#ffffff', grid: 20, bgImage: '' }
       };
       if (this.project.config.bgImage === undefined) this.project.config.bgImage = '';
       this.pages = Object.keys(this.project.pages);
@@ -600,28 +672,23 @@ class Builder {
     this.setupDraggables();
     this.updateLayers();
     this.saveState();
+    this.drawGrid();
   }
 
   applyConfig() {
     if (!this.project.config) {
-      this.project.config = { bgColor: '#fafafa', grid: 20, bgImage: '' };
+      this.project.config = { bgColor: '#ffffff', grid: 20, bgImage: '' };
     }
     if (this.canvas) {
-      this.canvas.style.background = this.project.config.bgColor || '#fafafa';
+      this.canvas.style.background = this.project.config.bgColor || '#ffffff';
+      const step = this.project.config.grid || 20;        // 20-px по умолчанию
+      this.canvas.style.setProperty('--grid-step', step + 'px');
       if (this.project.config.bgImage) {
         this.canvas.style.backgroundImage = `url('${this.project.config.bgImage}')`;
       } else {
         this.canvas.style.backgroundImage = '';
       }
-      if (this.gridOverlay) {
-        const step = parseInt(this.project.config.grid) || 0;
-        if (step > 0) {
-          this.gridOverlay.style.backgroundSize = `${step}px ${step}px`;
-          this.gridOverlay.style.display = '';
-        } else {
-          this.gridOverlay.style.display = 'none';
-        }
-      }
+      this.drawGrid();
     }
   }
 
@@ -638,6 +705,66 @@ class Builder {
     const next = this.theme === 'dark' ? 'light' : 'dark';
     this.applyTheme(next);
   }
+
+ /* ───────────────────────── drawGrid ───────────────────────── */
+  drawGrid() {
+    if (!this.gridCanvas || !this.canvas) return;
+
+    const step = parseInt(this.project.config.grid) || 0;
+    const { width: w, height: h } = this.canvas.getBoundingClientRect();
+    if (!w || !h) return;             // прорисуем, когда размеры будут ненулевые
+
+
+    /* 1. Синхронизируем реальные и CSS-размеры <canvas>,
+          иначе браузер будет масштабировать изображение,
+          и сетка займёт лишь часть холста. */
+    this.gridCanvas.width  = w;
+    this.gridCanvas.height = h;
+    this.gridCanvas.style.width  = w + 'px';
+    this.gridCanvas.style.height = h + 'px';
+
+    const ctx = this.gridCanvas.getContext('2d');
+    ctx.clearRect(0, 0, w, h);
+
+    /* 2. При скрытой сетке просто прячем canvas */
+    if (!this.gridVisible || step <= 0) {
+      this.gridCanvas.style.display = 'none';
+      return;
+    }
+    this.gridCanvas.style.display = '';
+
+    /* 3. Отрисовываем сетку во всю площадь холста */
+    ctx.strokeStyle = getComputedStyle(this.gridCanvas)
+                        .getPropertyValue('--grid-color').trim();
+    ctx.lineWidth   = 1;
+
+    for (let x = 0.5; x < w; x += step) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, h);
+      ctx.stroke();
+    }
+    for (let y = 0.5; y < h; y += step) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(w, y);
+      ctx.stroke();
+    }
+  }
+  toggleGrid() {
+    this.gridVisible = !this.gridVisible;
+
+    if (this.gridVisible) {
+      this.canvas.classList.add('show-grid');
+    } else {
+      this.canvas.classList.remove('show-grid');
+    }
+
+    /* визуальное состояние кнопки */
+    if (this.btnGrid)
+        this.btnGrid.classList.toggle('active', this.gridVisible);
+  }
+
 
   async toggleConfig() {
     if (this.configPanel.classList.contains('open')) {
