@@ -24,6 +24,7 @@
     <button id="btnConfig" class="btn"><i class="fa fa-gear"></i><span> Настройки</span></button>
     <button id="btnTheme" class="btn" title="Сменить тему">🌙</button>
     <button id="btnPreview" class="btn"><i class="fa fa-eye"></i><span> Предпросмотр</span></button>
+    <button id="btnGrid" class="btn" title="Показать/скрыть сетку"><i class="fa fa-border-all"></i></button>
 
     <!-- панель страниц -->
     <div id="pagesBar">
@@ -41,7 +42,7 @@
   </div>
 
   <div id="canvas">
-    <div id="gridOverlay"></div>
+    <canvas id="gridCanvas"></canvas>
     <div id="rulers">
       <div id="rulerH"></div>
       <div id="rulerV"></div>
