@@ -707,7 +707,8 @@ class Builder {
       this.gridCanvas.style.display = 'none';
       return;
     }
-    ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+    const color = getComputedStyle(this.gridCanvas).getPropertyValue('--grid-color');
+    ctx.strokeStyle = color;
     ctx.lineWidth = 1;
     for (let x = 0; x <= w; x += step) {
       ctx.beginPath();
