@@ -70,6 +70,9 @@ html,body{
   position:absolute;
   cursor:move;
   box-sizing:border-box;
+  border:0 solid transparent;
+  border-radius:0;
+  box-shadow:none;
 }
 .draggable.dragging{cursor:move;background:rgba(0,0,0,.1);}
 .draggable.resizing{cursor:nwse-resize;background:rgba(0,0,0,.1);}
