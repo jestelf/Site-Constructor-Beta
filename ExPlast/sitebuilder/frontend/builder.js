@@ -11,6 +11,71 @@ const anchorBottom = document.getElementById('anchorBottom');
 const AUTO_SAVE_KEY = 'builderAutosave';
 const AUTO_SAVE_INTERVAL = 10000;
 
+const LANG_KEY = 'uiLang';
+const i18n = {
+  ru: {
+    create:'Создать', load:'Загрузить', import:'Импорт', save:'Сохранить',
+    export:'Экспорт', settings:'Настройки', preview:'Предпросмотр', grid:'Сетка',
+    themeTip:'Сменить тему', helpTip:'Ctrl+Z — отмена, Ctrl+Y — повтор, Ctrl+C — копировать, Ctrl+V — вставить, Ctrl+A — выделить все, Ctrl+D — дублировать, Ctrl+S — сохранить, Delete — удалить',
+    newPageTitle:'Новая страница', deletePageTitle:'Удалить страницу', blocks:'Блоки',
+    blockText:'Текст', blockImage:'Картинка', blockHeader:'Заголовок', blockButton:'Кнопка',
+    layers:'Слои', layerUpTitle:'Вверх', layerDownTitle:'Вниз', layerToggleTitle:'Показать/скрыть',
+    inlineColorTitle:'Цвет текста', anchorRightTitle:'К правому краю', anchorBottomTitle:'К нижнему краю',
+    props:'Свойства', saved:'Сохранено', noProject:'Нет проекта', exportError:'Ошибка экспорта',
+    unknownFormat:'Неизвестный формат', importError:'Ошибка импорта', alreadyExists:'Уже есть',
+    lastPage:'Последняя страница', restoreConfirm:'Обнаружена сохранённая копия. Восстановить?',
+    projectNamePrompt:'Название проекта', projectDefaultName:'Сайт', projectIdPrompt:'ID проекта',
+    newPagePrompt:'Имя новой страницы (без .html):',
+    deleteConfirm:'Удалить',
+    cfgNameLabel:'Название:', cfgBgLabel:'Цвет фона:', cfgBgImageLabel:'Фоновое изображение:', cfgGridLabel:'Шаг сетки:',
+    widthLabel:'Ширина:', heightLabel:'Высота:', fontSizeLabel:'Размер шрифта:', textColorLabel:'Цвет текста:',
+    alignLabel:'Выравнивание:', familyLabel:'Семейство шрифта:', styleLabel:'Начертание:', fontBoldTitle:'Жирный', fontItalicTitle:'Курсив',
+    fillColorLabel:'Цвет заливки:', borderWidthLabel:'Толщина рамки:', borderColorLabel:'Цвет рамки:', radiusLabel:'Радиус:',
+    shadowLabel:'Тень:', imgUrlLabel:'URL изображения:', altTextLabel:'Alt текст:', linkLabel:'Ссылка:', openNewTabLabel:'Открывать в новой вкладке',
+    alignLeft:'Слева', alignCenter:'Центр', alignRight:'Справа', alignJustify:'По ширине', familyDefault:'По умолчанию'
+  },
+  en: {
+    create:'Create', load:'Load', import:'Import', save:'Save',
+    export:'Export', settings:'Settings', preview:'Preview', grid:'Grid',
+    themeTip:'Toggle theme', helpTip:'Ctrl+Z — undo, Ctrl+Y — redo, Ctrl+C — copy, Ctrl+V — paste, Ctrl+A — select all, Ctrl+D — duplicate, Ctrl+S — save, Delete — remove',
+    newPageTitle:'New page', deletePageTitle:'Delete page', blocks:'Blocks',
+    blockText:'Text', blockImage:'Image', blockHeader:'Header', blockButton:'Button',
+    layers:'Layers', layerUpTitle:'Up', layerDownTitle:'Down', layerToggleTitle:'Show/hide',
+    inlineColorTitle:'Text color', anchorRightTitle:'Anchor right', anchorBottomTitle:'Anchor bottom',
+    props:'Properties', saved:'Saved', noProject:'No project', exportError:'Export error',
+    unknownFormat:'Unknown format', importError:'Import error', alreadyExists:'Already exists',
+    lastPage:'Last page', restoreConfirm:'Found autosave. Restore?',
+    projectNamePrompt:'Project name', projectDefaultName:'Site', projectIdPrompt:'Project ID',
+    newPagePrompt:'New page name (without .html):',
+    deleteConfirm:'Delete',
+    cfgNameLabel:'Name:', cfgBgLabel:'Background color:', cfgBgImageLabel:'Background image:', cfgGridLabel:'Grid step:',
+    widthLabel:'Width:', heightLabel:'Height:', fontSizeLabel:'Font size:', textColorLabel:'Text color:',
+    alignLabel:'Alignment:', familyLabel:'Font family:', styleLabel:'Style:', fontBoldTitle:'Bold', fontItalicTitle:'Italic',
+    fillColorLabel:'Fill color:', borderWidthLabel:'Border width:', borderColorLabel:'Border color:', radiusLabel:'Radius:',
+    shadowLabel:'Shadow:', imgUrlLabel:'Image URL:', altTextLabel:'Alt text:', linkLabel:'Link:', openNewTabLabel:'Open in new tab',
+    alignLeft:'Left', alignCenter:'Center', alignRight:'Right', alignJustify:'Justify', familyDefault:'Default'
+  }
+};
+
+function t(key){
+  const lang = localStorage.getItem(LANG_KEY) || 'ru';
+  return (i18n[lang] && i18n[lang][key]) || i18n.ru[key] || key;
+}
+
+function applyLang(lang){
+  localStorage.setItem(LANG_KEY, lang);
+  const dict = i18n[lang] || i18n.ru;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    if(dict[el.dataset.i18n]) el.textContent = dict[el.dataset.i18n];
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(el=>{
+    if(dict[el.dataset.i18nTitle]) el.title = dict[el.dataset.i18nTitle];
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{
+    if(dict[el.dataset.i18nPlaceholder]) el.placeholder = dict[el.dataset.i18nPlaceholder];
+  });
+}
+
 document.addEventListener('mousedown', e => {
   const handle = e.target.closest('.resize-handle');
   if (handle) {
@@ -139,16 +204,16 @@ function addBlock(type, x = 20, y = 20) {
   let html = '';
   switch (type) {
     case 'text':
-      html = '<div class="draggable block-text" contenteditable="true">Текст</div>';
+      html = `<div class="draggable block-text" contenteditable="true">${t('blockText')}</div>`;
       break;
     case 'image':
       html = '<div class="block-image draggable"><img src="https://via.placeholder.com/150"></div>';
       break;
     case 'header':
-      html = '<h1 class="draggable block-header" contenteditable="true">Заголовок</h1>';
+      html = `<h1 class="draggable block-header" contenteditable="true">${t('blockHeader')}</h1>`;
       break;
     case 'button':
-      html = '<a class="draggable block-button" href="#">Кнопка</a>';
+      html = `<a class="draggable block-button" href="#">${t('blockButton')}</a>`;
       break;
   }
   if (html && builder.canvas) {
@@ -304,6 +369,8 @@ class Builder {
     this.btnExport   = document.getElementById('btnExport');
     this.btnConfig   = document.getElementById('btnConfig');
     this.btnPreview  = document.getElementById('btnPreview');
+    this.langSelect  = document.getElementById('langSelect');
+    this.toggleGrid  = document.getElementById('toggleGrid');
     this.pageSelect  = document.getElementById('pageSelect');
     this.pageAdd     = document.getElementById('pageAdd');
     this.pageDel     = document.getElementById('pageDel');
@@ -350,13 +417,19 @@ class Builder {
 
     this.theme = localStorage.getItem('theme') || 'light';
     this.applyTheme(this.theme);
+    if(this.langSelect){
+      const lang = localStorage.getItem(LANG_KEY) || 'ru';
+      this.langSelect.value = lang;
+      applyLang(lang);
+      this.langSelect.onchange = () => applyLang(this.langSelect.value);
+    }
 
     let restored = false;
     const saved = localStorage.getItem(AUTO_SAVE_KEY);
     if (saved) {
       try {
         const data = JSON.parse(saved);
-        if (confirm('Обнаружена сохранённая копия. Восстановить?')) {
+        if (confirm(t('restoreConfirm'))) {
           this.project = data.project || this.project;
           if (!this.project.config) this.project.config = { bgColor: '#fafafa', grid: 20, bgImage: '' };
           this.pages = Object.keys(this.project.pages);
@@ -589,7 +662,7 @@ class Builder {
   }
 
   async createProject() {
-    const name = prompt('Название проекта', 'Сайт');
+    const name = prompt(t('projectNamePrompt'), t('projectDefaultName'));
     if (!name) return;
     this.project = {
       id: null,
@@ -606,7 +679,7 @@ class Builder {
   }
 
   async loadProject() {
-    const id = parseInt(prompt('ID проекта', this.project.id || '1'));
+    const id = parseInt(prompt(t('projectIdPrompt'), this.project.id || '1'));
     if (!id) return;
     try {
       const pr = await api('GET', `/projects/${id}`);
@@ -621,13 +694,18 @@ class Builder {
       this.updateSelect();
       this.switchPage(this.pages[0]);
       this.applyConfig();
+      } catch { alert(t('noProject')); }
       this.startAutosave();
       } catch { alert('Нет проекта'); }
   }
 
   async saveProject() {
     if (!this.project.name) {
-      this.project.name = prompt('Название проекта', 'Сайт') || 'Site';
+      if (silent) {
+        this.project.name = t('projectDefaultName');
+      } else {
+        this.project.name = prompt(t('projectNamePrompt'), t('projectDefaultName')) || t('projectDefaultName');
+      }
     }
     this.project.pages[this.current].html = this.canvas.innerHTML;
     if (!this.project.id) {
@@ -643,19 +721,20 @@ class Builder {
       });
     }
     localStorage.removeItem(AUTO_SAVE_KEY);
+    alert(t('saved'));
     this.stopAutosave();
     this.startAutosave();
     alert('Сохранено');
   }
 
   async exportProject() {
-    if (!this.project.id) { alert('Нет проекта'); return; }
+    if (!this.project.id) { alert(t('noProject')); return; }
     try {
       const blob = await (await fetch(`/projects/${this.project.id}/export`)).blob();
       const u = URL.createObjectURL(blob);
       Object.assign(document.createElement('a'), { href: u, download: 'site.zip' }).click();
       URL.revokeObjectURL(u);
-    } catch { alert('Ошибка экспорта'); }
+    } catch { alert(t('exportError')); }
   }
 
   async importProject() {
@@ -676,7 +755,7 @@ class Builder {
         }
         this.project = { id: null, name: file.name.replace(/\.zip$/i, ''), pages, config: { bgColor: '#fafafa', grid: 20, bgImage: '' } };
       } else {
-        alert('Неизвестный формат');
+        alert(t('unknownFormat'));
         return;
       }
       if (!this.project.config) this.project.config = { bgColor: '#fafafa', grid: 20, bgImage: '' };
@@ -686,7 +765,7 @@ class Builder {
       this.applyConfig();
       this.setupDraggables();
     } catch {
-      alert('Ошибка импорта');
+      alert(t('importError'));
     } finally {
       this.fileImport.value = '';
       this.startAutosave();
@@ -694,8 +773,8 @@ class Builder {
   }
 
   addPage() {
-    const id = prompt('Имя новой страницы (без .html):', 'about');
-    if (!id || this.project.pages[id]) { alert('Уже есть'); return; }
+    const id = prompt(t('newPagePrompt'), 'about');
+    if (!id || this.project.pages[id]) { alert(t('alreadyExists')); return; }
     this.project.pages[id] = { html: '' };
     this.pages.push(id);
     const o = document.createElement('option');
@@ -706,9 +785,9 @@ class Builder {
   }
 
   deletePage() {
-    if (this.pages.length <= 1) { alert('Последняя страница'); return; }
+    if (this.pages.length <= 1) { alert(t('lastPage')); return; }
     const id = this.pageSelect.value;
-    if (!confirm(`Удалить ${id}?`)) return;
+    if (!confirm(`${t('deleteConfirm')} ${id}?`)) return;
     delete this.project.pages[id];
     const idx = this.pages.indexOf(id);
     if (idx >= 0) {
