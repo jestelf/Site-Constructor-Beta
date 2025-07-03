@@ -419,6 +419,7 @@ class Builder {
     this.saveState();
 
     document.addEventListener('keydown', e => {
+      if (e.target.closest('input, textarea') || e.target.isContentEditable) return;
       if (e.ctrlKey && e.key.toLowerCase() === 'z') {
         e.preventDefault();
         this.undo();
@@ -435,6 +436,22 @@ class Builder {
           e.preventDefault();
           this.pasteElement();
         }
+      } else if (e.ctrlKey && e.key.toLowerCase() === 'a') {
+        if (this.canvas) {
+          e.preventDefault();
+          this.selectElement(null);
+          for (const el of this.canvas.querySelectorAll('.draggable')) {
+            this.selectElement(el, true);
+          }
+        }
+      } else if (e.ctrlKey && e.key.toLowerCase() === 'd') {
+        if (this.selectedItems.length) {
+          e.preventDefault();
+          this.duplicateSelected();
+        }
+      } else if (e.ctrlKey && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        this.saveProject(true);
       } else if (e.key === 'Delete' && this.selectedItems.length) {
         for (const it of this.selectedItems) it.remove();
         this.selectedItems = [];
@@ -585,9 +602,13 @@ class Builder {
       } catch { alert('Нет проекта'); }
   }
 
-  async saveProject() {
+  async saveProject(silent = false) {
     if (!this.project.name) {
-      this.project.name = prompt('Название проекта', 'Сайт') || 'Site';
+      if (silent) {
+        this.project.name = 'Site';
+      } else {
+        this.project.name = prompt('Название проекта', 'Сайт') || 'Site';
+      }
     }
     this.project.pages[this.current].html = this.canvas.innerHTML;
     if (!this.project.id) {
@@ -602,7 +623,7 @@ class Builder {
         data: { pages: this.project.pages, config: this.project.config },
       });
     }
-    alert('Сохранено');
+    if (!silent) alert('Сохранено');
   }
 
   async exportProject() {
@@ -949,6 +970,32 @@ class Builder {
     this.canvas.appendChild(clone);
     addResizeHandles(clone);
     this.selectElement(clone);
+    this.updateLayers();
+    this.saveState();
+  }
+
+  duplicateSelected() {
+    if (!this.canvas || !this.selectedItems.length) return;
+    const clones = [];
+    for (const item of this.selectedItems) {
+      const cs = getComputedStyle(item);
+      const clone = item.cloneNode(true);
+      clone.classList.remove('selected');
+      clone.dataset.layerId = ++this.layerId;
+      clone.style.right = '';
+      clone.style.bottom = '';
+      delete clone.dataset.anchorRight;
+      delete clone.dataset.anchorBottom;
+      const left = parseFloat(cs.left) || 0;
+      const top  = parseFloat(cs.top) || 0;
+      clone.style.left = (left + 20) + 'px';
+      clone.style.top  = (top + 20) + 'px';
+      this.canvas.appendChild(clone);
+      addResizeHandles(clone);
+      clones.push(clone);
+    }
+    this.selectElement(null);
+    for (const c of clones) this.selectElement(c, true);
     this.updateLayers();
     this.saveState();
   }
