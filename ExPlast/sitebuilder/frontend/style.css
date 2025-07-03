@@ -37,7 +37,7 @@ html,body{
 
 #canvas{
   height:calc(100vh - 3.375rem);
-  background:var(--color-bg);
+  background:#fff;
   margin:10px;
   border-radius:8px;
   position:relative;

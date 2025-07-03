@@ -259,7 +259,7 @@ class Builder {
       id: null,
       name: '',
       pages: { index: { html: '' } },
-      config: { bgColor: '#fafafa', grid: 20, bgImage: '' }
+      config: { bgColor: '#ffffff', grid: 20, bgImage: '' }
     };
     this.pages = ['index'];
     this.current = 'index';
@@ -273,7 +273,7 @@ class Builder {
     this.groupBox = null;
     this.guideH = null;
     this.guideV = null;
-    this.gridVisible = true;
+    this.gridVisible = false;
   }
 
   setupDraggables() {
@@ -554,7 +554,7 @@ class Builder {
       id: null,
       name,
       pages: { index: { html: '' } },
-      config: { bgColor: '#fafafa', grid: 20, bgImage: '' }
+      config: { bgColor: '#ffffff', grid: 20, bgImage: '' }
     };
     this.pages = ['index'];
     this.updateSelect();
@@ -572,7 +572,7 @@ class Builder {
         id: pr.id,
         name: pr.name,
         pages: pr.data.pages || { index: { html: '' } },
-        config: pr.data.config || { bgColor: '#fafafa', grid: 20, bgImage: '' }
+        config: pr.data.config || { bgColor: '#ffffff', grid: 20, bgImage: '' }
       };
       if (this.project.config.bgImage === undefined) this.project.config.bgImage = '';
       this.pages = Object.keys(this.project.pages);
@@ -665,10 +665,10 @@ class Builder {
 
   applyConfig() {
     if (!this.project.config) {
-      this.project.config = { bgColor: '#fafafa', grid: 20, bgImage: '' };
+      this.project.config = { bgColor: '#ffffff', grid: 20, bgImage: '' };
     }
     if (this.canvas) {
-      this.canvas.style.background = this.project.config.bgColor || '#fafafa';
+      this.canvas.style.background = this.project.config.bgColor || '#ffffff';
       if (this.project.config.bgImage) {
         this.canvas.style.backgroundImage = `url('${this.project.config.bgImage}')`;
       } else {
