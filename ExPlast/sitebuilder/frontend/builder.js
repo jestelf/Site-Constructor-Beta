@@ -42,6 +42,13 @@ document.addEventListener('mousemove', e => {
     if (resizeDir.includes('w')) { w = rw - dx; l = rl + dx; }
     if (resizeDir.includes('n')) { h = rh - dy; t = rt + dy; }
     w = Math.max(20, w); h = Math.max(20, h);
+    const step = builder?.project?.config?.grid || 0;
+    if (step > 0) {
+      w = Math.round(w / step) * step;
+      h = Math.round(h / step) * step;
+      l = Math.round(l / step) * step;
+      t = Math.round(t / step) * step;
+    }
     if (resizeItem.dataset.anchorRight) {
       resizeItem.style.right = ((p.width - l - w) / p.width * 100) + '%';
       resizeItem.style.left = '';
@@ -58,6 +65,8 @@ document.addEventListener('mousemove', e => {
     resizeItem.style.height = h + 'px';
     resizeItem.dataset.w = w;
     resizeItem.dataset.h = h;
+    resizeItem.dataset.x = l;
+    resizeItem.dataset.y = t;
     return;
   }
 
@@ -66,6 +75,11 @@ document.addEventListener('mousemove', e => {
   const p = dragItem.parentElement.getBoundingClientRect();
   let l = e.clientX - p.left - dx;
   let t = e.clientY - p.top - dy;
+  const step = builder?.project?.config?.grid || 0;
+  if (step > 0) {
+    l = Math.round(l / step) * step;
+    t = Math.round(t / step) * step;
+  }
   l = Math.max(0, Math.min(l, p.width - dragItem.offsetWidth));
   t = Math.max(0, Math.min(t, p.height - dragItem.offsetHeight));
   if (dragItem.dataset.anchorRight) {
@@ -78,6 +92,8 @@ document.addEventListener('mousemove', e => {
   } else {
     dragItem.style.top  = (t / p.height * 100) + '%';
   }
+  dragItem.dataset.x = l;
+  dragItem.dataset.y = t;
 });
 
 document.addEventListener('mouseup', () => {
