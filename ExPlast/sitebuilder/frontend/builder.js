@@ -103,7 +103,7 @@ function addBlock(type) {
       html = '<div class="block-image draggable" style="left:20px;top:20px;"><img src="https://via.placeholder.com/150"></div>';
       break;
     case 'header':
-      html = '<h1 class="draggable block-text" contenteditable="true" style="left:20px;top:20px;">Заголовок</h1>';
+      html = '<h1 class="draggable block-header" contenteditable="true" style="left:20px;top:20px;">Заголовок</h1>';
       break;
     case 'button':
       html = '<a class="draggable block-button" href="#" style="left:20px;top:20px;">Кнопка</a>';

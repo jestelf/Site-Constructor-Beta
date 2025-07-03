@@ -94,6 +94,17 @@ html,body{
 .block-text{
   padding:0.25rem;
   color:#333;
+  min-width:100px;
+  min-height:30px;
+}
+
+.block-header{
+  padding:0.25rem;
+  color:#333;
+  font-size:1.5rem;
+  font-weight:bold;
+  min-width:120px;
+  min-height:40px;
 }
 
 .block-button{
@@ -103,12 +114,16 @@ html,body{
   color:var(--color-text);
   border-radius:var(--radius);
   transition:background-color .2s;
+  min-width:80px;
+  text-align:center;
 }
 .block-button:hover{background:var(--color-primary-hover);}
 
 .block-image{
   border:2px solid #ddd;
   box-shadow:0 2px 4px rgba(0,0,0,.2);
+  width:150px;
+  height:150px;
 }
 
 .block-image img{
