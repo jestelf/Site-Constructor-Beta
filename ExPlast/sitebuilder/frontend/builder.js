@@ -267,6 +267,8 @@ class Builder {
     this.clipboard = null;
     this.theme = 'light';
     this.groupBox = null;
+    this.previewWindow = null;
+    this.previewMode = false;
   }
 
   setupDraggables() {
@@ -283,6 +285,7 @@ class Builder {
     this.btnSave     = document.getElementById('btnSave');
     this.btnExport   = document.getElementById('btnExport');
     this.btnConfig   = document.getElementById('btnConfig');
+    this.btnPreview  = document.getElementById('btnPreview');
     this.pageSelect  = document.getElementById('pageSelect');
     this.pageAdd     = document.getElementById('pageAdd');
     this.pageDel     = document.getElementById('pageDel');
@@ -354,6 +357,7 @@ class Builder {
     this.btnSave.onclick    = () => this.saveProject();
     this.btnExport.onclick  = () => this.exportProject();
     this.btnConfig.onclick  = () => this.toggleConfig();
+    if (this.btnPreview) this.btnPreview.onclick = () => this.togglePreview();
     if (this.btnTheme) this.btnTheme.onclick = () => this.toggleTheme();
     this.pageSelect.onchange = () => this.switchPage(this.pageSelect.value);
     this.pageAdd.onclick    = () => this.addPage();
@@ -849,6 +853,64 @@ class Builder {
     this.selectElement(clone);
     this.updateLayers();
     this.saveState();
+  }
+
+  togglePreview() {
+    if (this.previewMode) {
+      document.querySelectorAll('.toolbar').forEach(el => {
+        if (el.dataset.wasOpen === '1') el.classList.add('open');
+        el.dataset.wasOpen = '';
+      });
+      if (this.configPanel) {
+        if (this.configPanel.dataset.wasOpen === '1') this.configPanel.classList.add('open');
+        this.configPanel.dataset.wasOpen = '';
+      }
+      if (this.gridOverlay) {
+        const prev = this.gridOverlay.dataset.prevDisplay;
+        this.gridOverlay.style.display = prev || '';
+        this.gridOverlay.dataset.prevDisplay = '';
+      }
+      if (this.previewWindow && !this.previewWindow.closed) this.previewWindow.close();
+      this.previewWindow = null;
+      this.previewMode = false;
+      return;
+    }
+
+    document.querySelectorAll('.toolbar').forEach(el => {
+      el.dataset.wasOpen = el.classList.contains('open') ? '1' : '0';
+      el.classList.remove('open');
+    });
+    if (this.configPanel) {
+      this.configPanel.dataset.wasOpen = this.configPanel.classList.contains('open') ? '1' : '0';
+      this.configPanel.classList.remove('open');
+    }
+    if (this.gridOverlay) {
+      this.gridOverlay.dataset.prevDisplay = this.gridOverlay.style.display;
+      this.gridOverlay.style.display = 'none';
+    }
+
+    const html = this.buildPreviewHTML();
+    this.previewWindow = window.open('', '', 'width=800,height=600,resizable=yes,scrollbars=yes');
+    if (this.previewWindow) {
+      this.previewWindow.document.write(html);
+      this.previewWindow.document.close();
+      this.previewWindow.onbeforeunload = () => {
+        this.previewWindow = null;
+        if (this.previewMode) this.togglePreview();
+      };
+    }
+    this.previewMode = true;
+  }
+
+  buildPreviewHTML() {
+    if (!this.canvas) return '';
+    const clone = this.canvas.cloneNode(true);
+    clone.querySelector('#gridOverlay')?.remove();
+    clone.querySelector('#groupSelectBox')?.remove();
+    clone.querySelectorAll('.resize-handle').forEach(e => e.remove());
+    clone.querySelectorAll('.selected').forEach(e => e.classList.remove('selected'));
+    const cls = document.documentElement.className;
+    return `<!DOCTYPE html><html lang="ru" class="${cls}"><head><meta charset="UTF-8"><link rel="stylesheet" href="style.css"></head><body>${clone.innerHTML}</body></html>`;
   }
 
   selectElement(el, append = false) {
