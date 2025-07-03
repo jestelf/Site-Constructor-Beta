@@ -113,6 +113,10 @@ export DATABASE_URL=postgresql://user:pass@localhost/dbname
 
 Полная OpenAPI-спека доступна по `/docs`.
 
+### Схема взаимодействия
+
+![Архитектура](docs/architecture.svg)
+
 ---
 
 ## Лицензия
