@@ -274,6 +274,7 @@ class Builder {
     this.guideH = null;
     this.guideV = null;
     this.gridVisible = false;
+    this.canvasObserver = null;
   }
 
   setupDraggables() {
@@ -285,6 +286,11 @@ class Builder {
 
   init() {
     this.canvas      = document.getElementById('canvas');
+    if (this.canvas) {
+      this.canvasObserver?.disconnect();
+      this.canvasObserver = new ResizeObserver(() => this.drawGrid());
+      this.canvasObserver.observe(this.canvas);
+    }
     this.btnCreate   = document.getElementById('btnCreate');
     this.btnLoad     = document.getElementById('btnLoad');
     this.btnSave     = document.getElementById('btnSave');
