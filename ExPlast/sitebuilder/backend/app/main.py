@@ -5,18 +5,21 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from starlette.responses import FileResponse
 from starlette.background import BackgroundTask
+from contextlib import asynccontextmanager
 
 from . import models, schemas, crud, exporter
 from .database import engine, get_db
 
 # ────────────────────────────── init ─────────────────────────
 
-app = FastAPI(title='Site-Builder API', version='0.3.0')
 
-
-@app.on_event("startup")
-def init_db() -> None:
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     models.Base.metadata.create_all(bind=engine)
+    yield
+
+
+app = FastAPI(title='Site-Builder API', version='0.3.0', lifespan=lifespan)
 
 # ────────────────────── список проектов ──────────────────────
 @app.get('/projects/', response_model=list[schemas.ProjectOut])
