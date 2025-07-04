@@ -201,16 +201,14 @@ class Builder {
       });
     }
 
-    if (this.canvas) {
-      this.canvas.addEventListener('click', e => {
-        const el = e.target.closest('.draggable');
-        if (el) {
-          this.selectElement(el, e.shiftKey);
-        } else if (!e.shiftKey) {
-          this.selectElement(null);
-        }
-      });
-    }
+    this.canvas.addEventListener('click', e => {
+      const el = e.target.closest('.draggable');
+      if (el) {
+        this.selectElement(el, e.shiftKey);
+      } else if (!e.shiftKey) {
+        this.selectElement(null);
+      }
+    });
 
     if (!restored) {
       this.updateSelect();
@@ -928,9 +926,5 @@ class Builder {
 
 const builder = new Builder();
 window.builder = builder;
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => builder.init());
-} else {
-  builder.init();
-}
+builder.init();
 export { builder };
