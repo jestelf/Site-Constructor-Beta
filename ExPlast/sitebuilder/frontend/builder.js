@@ -46,9 +46,7 @@ class Builder {
   setupDraggables() {
     if (!this.canvas) return;
     for (const el of this.canvas.querySelectorAll('.draggable')) {
-      if (window.addResizeHandles) {
-        window.addResizeHandles(el);
-      }
+      window.addResizeHandles(el);
     }
   }
 
