@@ -1,4 +1,4 @@
-import { addResizeHandles } from "./blocks.js";
+import { addResizeHandles, addBlock } from "./blocks.js";
 import { api } from "./api.js";
 import { AUTO_SAVE_KEY, AUTO_SAVE_INTERVAL } from "./constants.js";
 
@@ -167,29 +167,45 @@ class Builder {
     this.layerDown.onclick  = () => this.moveLayer(-1);
     this.layerToggle.onclick= () => this.toggleLayer();
 
+    /* ───────── Drag-n-Drop из панели «Блоки» ───────── */
     this.blocksBar = document.getElementById('blocksBar');
     if (this.blocksBar) {
       for (const item of this.blocksBar.querySelectorAll('.block-item')) {
-        item.addEventListener('dragstart', () => {
-          this.dragBlockType = item.dataset.type;
+        item.addEventListener('dragstart', e => {
+          this.dragBlockType = item.dataset.type;                 // что тащим
+          e.dataTransfer.setData('text/plain', this.dragBlockType); // БЕЗ этого drop не сработает
+          e.dataTransfer.effectAllowed = 'copy';
         });
+        item.addEventListener('dragend', () => { this.dragBlockType = null; });
       }
     }
 
+    /* ───────── Приём на холсте ───────── */
     if (this.canvas) {
+      // пока тянем блок – разрешаем «падать» на холст
       this.canvas.addEventListener('dragover', e => {
-        if (this.dragBlockType) e.preventDefault();
+        if (this.dragBlockType) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'copy';
+        }
       });
+
       this.canvas.addEventListener('drop', e => {
-        if (!this.dragBlockType) return;
-        e.preventDefault();
+        e.preventDefault();                               // ОБЯЗАТЕЛЬНО
+        const type = this.dragBlockType || e.dataTransfer.getData('text/plain');
+        this.dragBlockType = null;
+        if (!type) return;                                // защита от случайностей
+
+        /* координаты мыши внутри холста */
         const rect = this.canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
-        addBlock(this, this.dragBlockType, x, y);
-        this.dragBlockType = null;
+
+        addBlock(this, type, x, y);                       // создаём элемент
       });
     }
+
+
 
     this.canvas.addEventListener('click', e => {
       const el = e.target.closest('.draggable');
