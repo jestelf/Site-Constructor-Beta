@@ -176,4 +176,3 @@ export function addResizeHandles(el) {
 
 window.addBlock = addBlock;
 window.addResizeHandles = addResizeHandles;
-builder.setupDraggables();
