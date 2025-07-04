@@ -171,23 +171,23 @@ class Builder {
     if (this.blocksBar) {
       for (const item of this.blocksBar.querySelectorAll('.block-item')) {
         item.addEventListener('dragstart', () => {
-          dragBlockType = item.dataset.type;
+          this.dragBlockType = item.dataset.type;
         });
       }
     }
 
     if (this.canvas) {
       this.canvas.addEventListener('dragover', e => {
-        if (dragBlockType) e.preventDefault();
+        if (this.dragBlockType) e.preventDefault();
       });
       this.canvas.addEventListener('drop', e => {
-        if (!dragBlockType) return;
+        if (!this.dragBlockType) return;
         e.preventDefault();
         const rect = this.canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
-        addBlock(dragBlockType, x, y);
-        dragBlockType = null;
+        addBlock(this, this.dragBlockType, x, y);
+        this.dragBlockType = null;
       });
     }
 
