@@ -92,6 +92,7 @@ def create_page(db: Session, pid: int, page: schemas.PageCreate):
     db_pg = models.ProjectPage(
         project_id=pid,
         name=page.name,
+        title=page.title,
         data=_dumps(page.data),
     )
     db.add(db_pg)
@@ -99,7 +100,6 @@ def create_page(db: Session, pid: int, page: schemas.PageCreate):
     db.refresh(db_pg)
     db.expunge(db_pg)
     res = _attach_page(db_pg)
-    res.title = page.title or res.title
     return res
 
 
@@ -133,14 +133,12 @@ def update_page(db: Session, pid: int, pgid: int, page: schemas.PageUpdate):
         db_pg.name = page.name
     if page.data is not None:
         db_pg.data = _dumps(page.data)
-    # title храним только в ответе
+    if page.title is not None:
+        db_pg.title = page.title
     db.commit()
     db.refresh(db_pg)
     db.expunge(db_pg)
-    res = _attach_page(db_pg)
-    if page.title is not None:
-        res.title = page.title
-    return res
+    return _attach_page(db_pg)
 
 
 def delete_page(db: Session, pid: int, pgid: int) -> bool:
