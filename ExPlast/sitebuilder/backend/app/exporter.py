@@ -17,6 +17,7 @@ _HTML = """<!doctype html>
 {{ html|safe }}
 </body></html>"""
 
+
 def _render(page: ProjectPage, config: dict | None = None) -> bytes:
     """Собрать полноценную HTML‑страницу из данных страницы."""
 
@@ -52,6 +53,7 @@ def _render(page: ProjectPage, config: dict | None = None) -> bytes:
     body_attr = f" style=\"{' ; '.join(body_style)}\"" if body_style else ""
 
     return tpl.render(title=page.name, html=html, css=css, body_attr=body_attr).encode()
+
 
 def build_zip(project: Project, db: Session) -> str:
     """Создать tmp-zip и вернуть его путь.
