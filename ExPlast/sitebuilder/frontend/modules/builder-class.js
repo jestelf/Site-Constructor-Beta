@@ -719,7 +719,8 @@ class Builder {
       const img = this.selected.querySelector('img');
       if (img) {
         if (this.propSrc) {
-          const src = this.propSrc.value.trim();
+          let src = this.propSrc.value.trim();
+          src = src.replace(/^['"]|['"]$/g, '');
           if (src) img.src = src;
           this.selected.dataset.src = src;
         }
@@ -1012,7 +1013,11 @@ class Builder {
       const img = se.querySelector('img');
       if (this.propSrcRow) this.propSrcRow.style.display = '';
       if (this.propAltRow) this.propAltRow.style.display = '';
-      if (this.propSrc) this.propSrc.value = se.dataset.src || img?.src || '';
+      if (this.propSrc) {
+        let src = se.dataset.src || img?.src || '';
+        src = src.replace(/^['"]|['"]$/g, '');
+        this.propSrc.value = src;
+      }
       if (this.propAlt) this.propAlt.value = se.dataset.alt || img?.alt || '';
     } else {
       if (this.propSrcRow) this.propSrcRow.style.display = 'none';
