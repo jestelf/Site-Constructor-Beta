@@ -18,5 +18,6 @@ if (document.readyState === 'loading') {
   initAll();
 }
 
+
 window.addBlock = (type, x = 20, y = 20) => addBlock(builder, type, x, y);
 export default builder;
