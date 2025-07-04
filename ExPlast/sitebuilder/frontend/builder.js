@@ -46,7 +46,9 @@ class Builder {
   setupDraggables() {
     if (!this.canvas) return;
     for (const el of this.canvas.querySelectorAll('.draggable')) {
-      window.addResizeHandles(el);
+      if (window.addResizeHandles) {
+        window.addResizeHandles(el);
+      }
     }
   }
 
@@ -199,14 +201,16 @@ class Builder {
       });
     }
 
-    this.canvas.addEventListener('click', e => {
-      const el = e.target.closest('.draggable');
-      if (el) {
-        this.selectElement(el, e.shiftKey);
-      } else if (!e.shiftKey) {
-        this.selectElement(null);
-      }
-    });
+    if (this.canvas) {
+      this.canvas.addEventListener('click', e => {
+        const el = e.target.closest('.draggable');
+        if (el) {
+          this.selectElement(el, e.shiftKey);
+        } else if (!e.shiftKey) {
+          this.selectElement(null);
+        }
+      });
+    }
 
     if (!restored) {
       this.updateSelect();
@@ -924,5 +928,9 @@ class Builder {
 
 const builder = new Builder();
 window.builder = builder;
-builder.init();
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => builder.init());
+} else {
+  builder.init();
+}
 export { builder };
