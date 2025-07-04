@@ -16,7 +16,7 @@ export function addBlock(builder, type, x = 20, y = 20) {
       html = '<div class="draggable block-text" contenteditable="true">Текст</div>';
       break;
     case 'image':
-      html = '<div class="block-image draggable"><img src="https://via.placeholder.com/150"></div>';
+      html = '<div class="block-image draggable"><img src="https://via.placeholder.com/150" alt=""></div>';
       break;
     case 'header':
       html = '<h1 class="draggable block-header" contenteditable="true">Заголовок</h1>';
