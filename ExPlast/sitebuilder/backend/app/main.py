@@ -105,13 +105,22 @@ def export_zip(pid: int, db: Session = Depends(get_db)):
 #                 │   ├─ builder.js
 #                 │   └─ … (css, imgs)
 #                 └─ backend/
-FRONT_DIR = Path(__file__).resolve().parents[2] / "frontend"
+BASE_DIR = Path(__file__).resolve().parents[4]
+FRONT_DIR = BASE_DIR / "ExPlast" / "sitebuilder" / "frontend"
+STYLE_DIR = BASE_DIR / "style"
+SRC_DIR = BASE_DIR / "src"
 # если путь не найден → явная ошибка при старте
 if not FRONT_DIR.exists():
     raise RuntimeError(f"frontend directory not found: {FRONT_DIR}")
 if not (FRONT_DIR / "builder.js").exists():
     raise RuntimeError(f"builder.js not found in frontend directory: {FRONT_DIR}")
+if not STYLE_DIR.exists():
+    raise RuntimeError(f"style directory not found: {STYLE_DIR}")
+if not SRC_DIR.exists():
+    raise RuntimeError(f"src directory not found: {SRC_DIR}")
 
 # отдаём всё содержимое папки,
 # html=True → запрос к '/' вернёт index.html
+app.mount("/style", StaticFiles(directory=STYLE_DIR), name="style")
+app.mount("/src", StaticFiles(directory=SRC_DIR), name="src")
 app.mount("/", StaticFiles(directory=FRONT_DIR, html=True), name="frontend")
