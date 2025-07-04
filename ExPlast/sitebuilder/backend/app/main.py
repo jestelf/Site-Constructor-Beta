@@ -98,22 +98,20 @@ def export_zip(pid: int, db: Session = Depends(get_db)):
 
 
 # ─────────────────────── статика фронтенда ───────────────────
-# структура:  ExPlast/
-#             └─ sitebuilder/
-#                 ├─ frontend/
-#                 │   ├─ index.html
-#                 │   ├─ builder.js
-#                 │   └─ … (css, imgs)
-#                 └─ backend/
+# структура корня проекта:
+#             ├─ public/  – индекс и прочие статические файлы
+#             ├─ style/   – стили
+#             ├─ src/     – js-модули
+#             └─ ExPlast/sitebuilder/backend/
 BASE_DIR = Path(__file__).resolve().parents[4]
-FRONT_DIR = BASE_DIR / "ExPlast" / "sitebuilder" / "frontend"
+FRONT_DIR = BASE_DIR / "public"
 STYLE_DIR = BASE_DIR / "style"
 SRC_DIR = BASE_DIR / "src"
 # если путь не найден → явная ошибка при старте
 if not FRONT_DIR.exists():
     raise RuntimeError(f"frontend directory not found: {FRONT_DIR}")
-if not (FRONT_DIR / "builder.js").exists():
-    raise RuntimeError(f"builder.js not found in frontend directory: {FRONT_DIR}")
+if not (FRONT_DIR / "index.html").exists():
+    raise RuntimeError(f"index.html not found in frontend directory: {FRONT_DIR}")
 if not STYLE_DIR.exists():
     raise RuntimeError(f"style directory not found: {STYLE_DIR}")
 if not SRC_DIR.exists():
