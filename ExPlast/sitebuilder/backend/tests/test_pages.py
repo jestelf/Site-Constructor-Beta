@@ -23,14 +23,18 @@ def test_pages_crud():
     # create page
     pg = client.post(f"/projects/{pid}/pages", json={"name":"about","title":"О нас","data":{}}).json()
     assert pg["name"]=="about"
+    assert pg["title"]=="О нас"
 
     # list
     lst=client.get(f"/projects/{pid}/pages").json()
     assert len(lst)==1
+    assert lst[0]["title"]=="О нас"
 
     # update
     upd=client.put(f"/projects/{pid}/pages/{pg['id']}", json={"title":"About Us"}).json()
     assert upd["title"]=="About Us"
+    updated=client.get(f"/projects/{pid}/pages/{pg['id']}").json()
+    assert updated["title"]=="About Us"
 
     # delete
     del_resp = client.delete(f"/projects/{pid}/pages/{pg['id']}")
@@ -46,6 +50,7 @@ def test_get_page():
     r = client.get(f"/projects/{pid}/pages/{pgid}")
     assert r.status_code == 200
     assert r.json()["id"] == pgid
+    assert r.json()["title"] == "О нас"
 
     r2 = client.get(f"/projects/{pid}/pages/9999")
     assert r2.status_code == 404
