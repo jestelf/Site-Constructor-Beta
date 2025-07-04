@@ -1,3 +1,11 @@
+import os
+import tempfile
+
+# перед импорта приложения переключаем БД на временный файл
+fd, path = tempfile.mkstemp(suffix=".db")
+os.close(fd)
+os.environ["DATABASE_URL"] = f"sqlite:///{path}"
+
 from fastapi.testclient import TestClient
 
 # путь к вашему приложению (вы раньше использовали именно sitebuilder.backend)
