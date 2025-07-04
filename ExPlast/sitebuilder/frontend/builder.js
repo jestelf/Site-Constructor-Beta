@@ -1,186 +1,8 @@
-// Простые обработчики перетаскивания элементов
-let dragItem = null, dx = 0, dy = 0, moved = false;
-
-let dragItems = [], dragOffsets = [];
-
-let dragBlockType = null;
-let resizeItem = null, resizeDir = '', rx = 0, ry = 0, rw = 0, rh = 0, rl = 0, rt = 0;
-let selectedItem = null;
-const anchorRight = document.getElementById('anchorRight');
-const anchorBottom = document.getElementById('anchorBottom');
-const AUTO_SAVE_KEY = 'builderAutosave';
-const AUTO_SAVE_INTERVAL = 10000;
-
-document.addEventListener('mousedown', e => {
-  const handle = e.target.closest('.resize-handle');
-  if (handle) {
-    resizeItem = handle.parentElement;
-    resizeItem.classList.add('resizing');
-    resizeDir = handle.dataset.dir || '';
-    const p = resizeItem.parentElement.getBoundingClientRect();
-    const r = resizeItem.getBoundingClientRect();
-    rx = e.clientX;
-    ry = e.clientY;
-    rw = r.width; rh = r.height;
-    rl = r.left - p.left; rt = r.top - p.top;
-    e.preventDefault();
-    return;
-  }
-  const el = e.target.closest('.draggable');
-  if (!el) return;
-  if (!builder.selectedItems.includes(el)) {
-    builder.selectElement(el);
-  }
-  const items = builder.selectedItems.length ? builder.selectedItems : [el];
-  dragItems = items;
-  dragOffsets = [];
-  for (const it of items) {
-    const r = it.getBoundingClientRect();
-    dragOffsets.push({ el: it, dx: e.clientX - r.left, dy: e.clientY - r.top });
-    it.classList.add('dragging');
-  }
-  dragItem = el;
-  moved = false;
-  e.preventDefault();
-});
-
-document.addEventListener('mousemove', e => {
-  if (resizeItem) {
-    const p = resizeItem.parentElement.getBoundingClientRect();
-    let dx = e.clientX - rx;
-    let dy = e.clientY - ry;
-    let w = rw, h = rh, l = rl, t = rt;
-    if (resizeDir.includes('e')) w = rw + dx;
-    if (resizeDir.includes('s')) h = rh + dy;
-    if (resizeDir.includes('w')) { w = rw - dx; l = rl + dx; }
-    if (resizeDir.includes('n')) { h = rh - dy; t = rt + dy; }
-    w = Math.max(20, w); h = Math.max(20, h);
-    const step = builder?.project?.config?.grid || 0;
-    if (step > 0) {
-      w = Math.round(w / step) * step;
-      h = Math.round(h / step) * step;
-      l = Math.round(l / step) * step;
-      t = Math.round(t / step) * step;
-    }
-    if (resizeItem.dataset.anchorRight) {
-      resizeItem.style.right = ((p.width - l - w) / p.width * 100) + '%';
-      resizeItem.style.left = '';
-    } else {
-      resizeItem.style.left = (l / p.width * 100) + '%';
-    }
-    if (resizeItem.dataset.anchorBottom) {
-      resizeItem.style.bottom = ((p.height - t - h) / p.height * 100) + '%';
-      resizeItem.style.top = '';
-    } else {
-      resizeItem.style.top = (t / p.height * 100) + '%';
-    }
-    resizeItem.style.width = w + 'px';
-    resizeItem.style.height = h + 'px';
-    resizeItem.dataset.w = w;
-    resizeItem.dataset.h = h;
-    resizeItem.dataset.x = l;
-    resizeItem.dataset.y = t;
-    builder.checkGuides(resizeItem);
-    return;
-  }
-
-  if (!dragItem) return;
-  moved = true;
-  const step = builder?.project?.config?.grid || 0;
-  for (let i = 0; i < dragOffsets.length; i++) {
-    const info = dragOffsets[i];
-    const p = info.el.parentElement.getBoundingClientRect();
-    let l = e.clientX - p.left - info.dx;
-    let t = e.clientY - p.top - info.dy;
-    if (step > 0) {
-      l = Math.round(l / step) * step;
-      t = Math.round(t / step) * step;
-    }
-    l = Math.max(0, Math.min(l, p.width - info.el.offsetWidth));
-    t = Math.max(0, Math.min(t, p.height - info.el.offsetHeight));
-    if (info.el.dataset.anchorRight) {
-      info.el.style.right = ((p.width - l - info.el.offsetWidth) / p.width * 100) + '%';
-    } else {
-      info.el.style.left = (l / p.width * 100) + '%';
-    }
-    if (info.el.dataset.anchorBottom) {
-      info.el.style.bottom = ((p.height - t - info.el.offsetHeight) / p.height * 100) + '%';
-    } else {
-      info.el.style.top  = (t / p.height * 100) + '%';
-    }
-    info.el.dataset.x = l;
-    info.el.dataset.y = t;
-  }
-  builder.updateGroupBox();
-  builder.checkGuides(dragItem);
-});
-
-document.addEventListener('mouseup', () => {
-  if (resizeItem) {
-    resizeItem.classList.remove('resizing');
-    builder.saveState();
-    resizeItem = null;
-    builder.hideGuides();
-    return;
-  }
-  if (dragItems.length && moved) builder.saveState();
-  for (const info of dragOffsets) {
-    info.el.classList.remove('dragging');
-  }
-  dragItem = null;
-  dragItems = [];
-  dragOffsets = [];
-  builder.updateGroupBox();
-  builder.hideGuides();
-});
-
-// Создание блоков
-function addBlock(type, x = 20, y = 20) {
-  let html = '';
-  switch (type) {
-    case 'text':
-      html = '<div class="draggable block-text" contenteditable="true">Текст</div>';
-      break;
-    case 'image':
-      html = '<div class="block-image draggable"><img src="https://via.placeholder.com/150"></div>';
-      break;
-    case 'header':
-      html = '<h1 class="draggable block-header" contenteditable="true">Заголовок</h1>';
-      break;
-    case 'button':
-      html = '<a class="draggable block-button" href="#">Кнопка</a>';
-      break;
-  }
-  if (html && builder.canvas) {
-    builder.canvas.insertAdjacentHTML('beforeend', html);
-    const el = builder.canvas.lastElementChild;
-    const step = builder.project?.config?.grid || 0;
-    if (step > 0) {
-      x = Math.round(x / step) * step;
-      y = Math.round(y / step) * step;
-    }
-    el.style.left = x + 'px';
-    el.style.top = y + 'px';
-    el.dataset.layerId = ++builder.layerId;
-    el.dataset.x = x;
-    el.dataset.y = y;
-    addResizeHandles(el);
-    builder.updateLayers();
-    builder.saveState();
-  }
-}
-window.addBlock = addBlock;
-
-function addResizeHandles(el) {
-  if (!el) return;
-  if (el.querySelector('.resize-handle')) return;
-  for (const dir of ['nw','ne','sw','se']) {
-    const d = document.createElement('div');
-    d.className = 'resize-handle';
-    d.dataset.dir = dir;
-    el.appendChild(d);
-  }
-}
+export let dragBlockType = null;
+export const AUTO_SAVE_KEY = 'builderAutosave';
+export const AUTO_SAVE_INTERVAL = 10000;
+export const bar = document.getElementById('inlineToolbar');
+export const pick = document.getElementById('colorPick');
 
 // API helper
 async function api(method, path, body) {
@@ -193,67 +15,6 @@ async function api(method, path, body) {
   return r.json();
 }
 
-// Мини-панель форматирования
-const bar = document.getElementById('inlineToolbar');
-const pick = document.getElementById('colorPick');
-
-if (pick) {
-  pick.oninput = e => {
-    if (builder.selected) {
-      builder.selected.style.color = e.target.value;
-      builder.selected.dataset.color = e.target.value;
-    }
-    document.execCommand('foreColor', false, e.target.value);
-    builder.saveState();
-  };
-}
-
-bar?.addEventListener('mousedown', e => e.stopPropagation());
-
-document.addEventListener('click', e => {
-  if (!builder.canvas || bar.contains(e.target)) return;
-  const el = e.target.closest('.draggable');
-  if (el && builder.canvas.contains(el)) {
-    selectedItem = el;
-    bar.classList.add('open');
-    if (anchorRight) anchorRight.checked = !!el.dataset.anchorRight;
-    if (anchorBottom) anchorBottom.checked = !!el.dataset.anchorBottom;
-  } else {
-    selectedItem = null;
-    bar.classList.remove('open');
-  }
-});
-
-function toggleAnchor(type) {
-  if (!selectedItem) return;
-  const p = selectedItem.parentElement.getBoundingClientRect();
-  const r = selectedItem.getBoundingClientRect();
-  if (type === 'Right') {
-    if (anchorRight.checked) {
-      selectedItem.style.right = ((p.right - r.right) / p.width * 100) + '%';
-      selectedItem.style.left = '';
-      selectedItem.dataset.anchorRight = '1';
-    } else {
-      selectedItem.style.left = ((r.left - p.left) / p.width * 100) + '%';
-      selectedItem.style.right = '';
-      delete selectedItem.dataset.anchorRight;
-    }
-  } else {
-    if (anchorBottom.checked) {
-      selectedItem.style.bottom = ((p.bottom - r.bottom) / p.height * 100) + '%';
-      selectedItem.style.top = '';
-      selectedItem.dataset.anchorBottom = '1';
-    } else {
-      selectedItem.style.top = ((r.top - p.top) / p.height * 100) + '%';
-      selectedItem.style.bottom = '';
-      delete selectedItem.dataset.anchorBottom;
-    }
-  }
-  builder.saveState();
-}
-
-anchorRight?.addEventListener('change', () => toggleAnchor('Right'));
-anchorBottom?.addEventListener('change', () => toggleAnchor('Bottom'));
 
 class Builder {
   constructor() {
@@ -285,7 +46,7 @@ class Builder {
   setupDraggables() {
     if (!this.canvas) return;
     for (const el of this.canvas.querySelectorAll('.draggable')) {
-      addResizeHandles(el);
+      window.addResizeHandles(el);
     }
   }
 
@@ -433,7 +194,7 @@ class Builder {
         const rect = this.canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
-        addBlock(dragBlockType, x, y);
+        window.addBlock(dragBlockType, x, y);
         dragBlockType = null;
       });
     }
@@ -871,114 +632,6 @@ class Builder {
     this.saveState();
   }
 
-  changeProps() {
-    if (!this.selected) return;
-    if (this.propW) {
-      const w = parseInt(this.propW.value) || 0;
-      if (w) {
-        this.selected.style.width = w + 'px';
-        this.selected.dataset.w = w;
-      }
-    }
-    if (this.propH) {
-      const h = parseInt(this.propH.value) || 0;
-      if (h) {
-        this.selected.style.height = h + 'px';
-        this.selected.dataset.h = h;
-      }
-    }
-    if (this.propFont) {
-      const fs = parseInt(this.propFont.value) || 0;
-      if (fs) {
-        this.selected.style.fontSize = fs + 'px';
-        this.selected.dataset.fs = fs;
-      }
-    }
-    if (this.propColor) {
-      const c = this.propColor.value;
-      this.selected.style.color = c;
-      this.selected.dataset.color = c;
-    }
-    if (this.propAlign) {
-      const al = this.propAlign.value;
-      this.selected.style.textAlign = al;
-      this.selected.dataset.textAlign = al;
-    }
-    if (this.propFamily) {
-      const ff = this.propFamily.value;
-      this.selected.style.fontFamily = ff || '';
-      this.selected.dataset.fontFamily = ff;
-    }
-    if (this.propBold) {
-      const w = this.propBold.checked ? 'bold' : 'normal';
-      this.selected.style.fontWeight = w;
-      this.selected.dataset.fontWeight = w;
-    }
-    if (this.propItalic) {
-      const st = this.propItalic.checked ? 'italic' : 'normal';
-      this.selected.style.fontStyle = st;
-      this.selected.dataset.fontStyle = st;
-    }
-    if (this.propBg) {
-      const bg = this.propBg.value;
-      this.selected.style.backgroundColor = bg;
-      this.selected.dataset.bg = bg;
-    }
-    if (this.propBorderWidth) {
-      const bw = parseInt(this.propBorderWidth.value) || 0;
-      this.selected.style.borderWidth = bw + 'px';
-      this.selected.style.borderStyle = bw ? 'solid' : 'none';
-      this.selected.dataset.borderWidth = bw;
-    }
-    if (this.propBorderColor) {
-      const bc = this.propBorderColor.value;
-      this.selected.style.borderColor = bc;
-      if (parseInt(this.propBorderWidth?.value || 0) > 0) this.selected.style.borderStyle = 'solid';
-      this.selected.dataset.borderColor = bc;
-    }
-    if (this.propRadius) {
-      const br = parseInt(this.propRadius.value) || 0;
-      this.selected.style.borderRadius = br + 'px';
-      this.selected.dataset.radius = br;
-    }
-    if (this.propShadow) {
-      const sh = this.propShadow.checked ? 'var(--shadow)' : 'none';
-      this.selected.style.boxShadow = sh;
-      this.selected.dataset.shadow = sh;
-    }
-    if (this.selected.classList.contains('block-image')) {
-      const img = this.selected.querySelector('img');
-      if (img) {
-        if (this.propSrc) {
-          const src = this.propSrc.value.trim();
-          if (src) img.src = src;
-          this.selected.dataset.src = src;
-        }
-        if (this.propAlt) {
-          const alt = this.propAlt.value;
-          img.alt = alt;
-          this.selected.dataset.alt = alt;
-        }
-      }
-    }
-    if (this.selected.classList.contains('block-button') || this.selected.tagName.toLowerCase() === 'a') {
-      if (this.propHref) {
-        const href = this.propHref.value.trim() || '#';
-        this.selected.setAttribute('href', href);
-        this.selected.dataset.href = href;
-      }
-      if (this.propTarget) {
-        if (this.propTarget.checked) {
-          this.selected.setAttribute('target', '_blank');
-          this.selected.dataset.target = '_blank';
-        } else {
-          this.selected.removeAttribute('target');
-          delete this.selected.dataset.target;
-        }
-      }
-    }
-    this.saveState();
-  }
 
   saveState() {
     if (!this.canvas) return;
@@ -1047,7 +700,7 @@ class Builder {
     clone.style.left = (left + dx) + 'px';
     clone.style.top  = (top + dy) + 'px';
     this.canvas.appendChild(clone);
-    addResizeHandles(clone);
+    window.addResizeHandles(clone);
     this.selectElement(clone);
     this.updateLayers();
     this.saveState();
@@ -1143,7 +796,6 @@ class Builder {
     }
 
     this.selected = this.selectedItems[0] || null;
-    selectedItem = this.selected;
     this.updateGroupBox();
 
     if (!this.selected) {
@@ -1272,3 +924,5 @@ class Builder {
 
 const builder = new Builder();
 window.builder = builder;
+builder.init();
+export { builder };
