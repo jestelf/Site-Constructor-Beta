@@ -7,8 +7,10 @@ os.close(fd)
 os.environ["DATABASE_URL"] = f"sqlite:///{path}"
 
 from fastapi.testclient import TestClient
+from sqlalchemy.exc import IntegrityError
 from sitebuilder.backend.app.main import app
 from sitebuilder.backend.app.database import Base, engine
+import pytest
 
 client = TestClient(app)
 
@@ -54,3 +56,11 @@ def test_get_page():
 
     r2 = client.get(f"/projects/{pid}/pages/9999")
     assert r2.status_code == 404
+
+
+def test_page_unique_name():
+    proj = client.post("/projects/", json={"name":"Site","data":{}}).json()
+    pid = proj["id"]
+    client.post(f"/projects/{pid}/pages", json={"name":"about","title":"T1","data":{}})
+    with pytest.raises(IntegrityError):
+        client.post(f"/projects/{pid}/pages", json={"name":"about","title":"T2","data":{}})

@@ -10,6 +10,7 @@ const anchorRight = document.getElementById('anchorRight');
 const anchorBottom = document.getElementById('anchorBottom');
 const AUTO_SAVE_KEY = 'builderAutosave';
 const AUTO_SAVE_INTERVAL = 10000;
+const UNDO_LIMIT = 50;
 
 document.addEventListener('mousedown', e => {
   const handle = e.target.closest('.resize-handle');
@@ -983,6 +984,9 @@ class Builder {
   saveState() {
     if (!this.canvas) return;
     this.undoStack.push(this.canvas.innerHTML);
+    if (this.undoStack.length > UNDO_LIMIT) {
+      this.undoStack.shift();
+    }
     this.redoStack.length = 0;
     this.autosave();
   }
@@ -990,6 +994,9 @@ class Builder {
   undo() {
     if (!this.undoStack.length) return;
     this.redoStack.push(this.canvas.innerHTML);
+    if (this.redoStack.length > UNDO_LIMIT) {
+      this.redoStack.shift();
+    }
     const state = this.undoStack.pop();
     this.canvas.innerHTML = state;
     this.layerId = 0;
@@ -1009,6 +1016,9 @@ class Builder {
   redo() {
     if (!this.redoStack.length) return;
     this.undoStack.push(this.canvas.innerHTML);
+    if (this.undoStack.length > UNDO_LIMIT) {
+      this.undoStack.shift();
+    }
     const state = this.redoStack.pop();
     this.canvas.innerHTML = state;
     this.layerId = 0;

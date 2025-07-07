@@ -9,6 +9,14 @@ from jinja2 import Template
 from sqlalchemy.orm import Session
 from .models import Project, ProjectPage
 
+_SAFE_RE = re.compile(r"[^A-Za-z0-9_-]")
+
+
+def _safe_name(name: str) -> str:
+    """Вернуть безопасное имя файла."""
+    return _SAFE_RE.sub("_", name)
+
+
 _HTML = """<!doctype html>
 <html lang="ru"><head>
   <meta charset="utf-8">
@@ -49,7 +57,7 @@ def _render(page: ProjectPage, config: dict | None = None) -> bytes:
         if bg:
             body_style.append(f"background:{bg}")
         if cfg.get("style"):
-            css = f"{css}\n{cfg.get('style')}" if css else cfg.get('style')
+            css = f"{css}\n{cfg.get('style')}" if css else cfg.get("style")
 
     body_attr = f" style=\"{' ; '.join(body_style)}\"" if body_style else ""
 
@@ -88,16 +96,21 @@ def build_zip(project: Project, db: Session) -> str:
     pages = list(pages_dict.values())
 
     tmp_fd, tmp_name = tempfile.mkstemp(suffix=".zip")
-    os.close(tmp_fd)                    # zipfile сам будет писать
+    os.close(tmp_fd)  # zipfile сам будет писать
 
     with zipfile.ZipFile(tmp_name, "w", zipfile.ZIP_DEFLATED) as zf:
         cfg = project.data.get("config") if isinstance(project.data, dict) else {}
         for pg in pages:
             html_bytes = _render(pg, cfg)
-            fname = ("index" if pg.name == "index" else pg.name) + ".html"
+            pname = _safe_name(pg.name)
+            if not pname:
+                continue
+            fname = ("index" if pname == "index" else pname) + ".html"
             zf.writestr(fname, html_bytes)
 
-        proj_data = project.data.get("project") if isinstance(project.data, dict) else {}
+        proj_data = (
+            project.data.get("project") if isinstance(project.data, dict) else {}
+        )
         assets = proj_data.get("assets") if isinstance(proj_data, dict) else []
         for idx, asset in enumerate(assets, 1):
             src = asset.get("src")
@@ -106,11 +119,13 @@ def build_zip(project: Project, db: Session) -> str:
             name = asset.get("name") or f"asset{idx}"
             # допускаем только буквы, цифры, подчёркивание, дефис и точку
             name = re.sub(r"[^A-Za-z0-9_.-]", "_", name)
+            if not aname:
+                continue
             try:
                 header, b64 = src.split(",", 1)
                 data = base64.b64decode(b64)
             except Exception:
                 continue
-            zf.writestr(f"assets/{name}", data)
+            zf.writestr(f"assets/{aname}", data)
 
     return tmp_name
