@@ -348,23 +348,6 @@ class Builder {
     this.btnTheme    = document.getElementById('btnTheme');
     this.btnGrid     = document.getElementById('btnGrid');
 
-    this.modalOverlay = document.getElementById('modalOverlay');
-    this.dlgCreate    = document.getElementById('dlgCreate');
-    this.formCreate   = document.getElementById('formCreate');
-    this.createName   = document.getElementById('createName');
-    this.dlgLoad      = document.getElementById('dlgLoad');
-    this.formLoad     = document.getElementById('formLoad');
-    this.loadList     = document.getElementById('loadList');
-    this.dlgSave      = document.getElementById('dlgSave');
-    this.formSave     = document.getElementById('formSave');
-    this.saveName     = document.getElementById('saveName');
-    this.saveId       = document.getElementById('saveId');
-    this.saveStatus   = document.getElementById('saveStatus');
-    this.dlgImport    = document.getElementById('dlgImport');
-    this.formImport   = document.getElementById('formImport');
-    this.dlgExport    = document.getElementById('dlgExport');
-    this.exportLink   = document.getElementById('exportLink');
-
     this.theme = localStorage.getItem('theme') || 'light';
     this.applyTheme(this.theme);
 
@@ -410,20 +393,11 @@ class Builder {
       this.applyConfig();
     };
 
-    this.btnCreate.onclick  = () => {
-      if (this.createName) this.createName.value = '';
-      this.openDialog('dlgCreate');
-    };
-    this.btnLoad.onclick    = () => this.showLoadDialog();
-    if (this.btnImport) this.btnImport.onclick = () => this.openDialog('dlgImport');
-    if (this.formImport) this.formImport.onsubmit = e => { e.preventDefault(); this.importProject(); this.closeDialog('dlgImport'); };
-    this.btnSave.onclick    = () => {
-      if (this.saveName) this.saveName.value = this.project.name;
-      if (this.saveId) this.saveId.textContent = this.project.id || '—';
-      if (this.saveStatus) this.saveStatus.textContent = '';
-      this.openDialog('dlgSave');
-    };
-    if (this.formSave) this.formSave.onsubmit = e => { e.preventDefault(); this.saveProject(this.saveName.value); };
+    this.btnCreate.onclick  = () => this.createProject();
+    this.btnLoad.onclick    = () => this.loadProject();
+    if (this.btnImport) this.btnImport.onclick = () => this.fileImport?.click();
+    if (this.fileImport) this.fileImport.onchange = () => this.importProject();
+    this.btnSave.onclick    = () => this.saveProject();
     this.btnExport.onclick  = () => this.exportProject();
     this.btnConfig.onclick  = () => this.toggleConfig();
     if (this.btnPreview) this.btnPreview.onclick = () => this.togglePreview();
@@ -439,29 +413,6 @@ class Builder {
     this.layerUp.onclick    = () => this.moveLayer(1);
     this.layerDown.onclick  = () => this.moveLayer(-1);
     this.layerToggle.onclick= () => this.toggleLayer();
-
-    if (this.formCreate) this.formCreate.onsubmit = e => {
-      e.preventDefault();
-      this.closeDialog('dlgCreate');
-      this.createProject(this.createName.value.trim());
-    };
-    if (this.formLoad) this.formLoad.onsubmit = e => {
-      e.preventDefault();
-      this.closeDialog('dlgLoad');
-      this.loadProject(this.loadList.value);
-    };
-
-    document.querySelectorAll('[data-close]')
-      .forEach(btn => btn.addEventListener('click', () => this.closeDialog(btn.dataset.close)));
-
-    if (this.modalOverlay) {
-      this.modalOverlay.addEventListener('click', e => {
-        if (e.target === this.modalOverlay) {
-          const dlg = document.querySelector('.modal.open');
-          if (dlg) this.closeDialog(dlg.id);
-        }
-      });
-    }
 
     this.blocksBar = document.getElementById('blocksBar');
     if (this.blocksBar) {
@@ -637,7 +588,8 @@ class Builder {
     if (this.guideV) this.guideV.style.display = 'none';
   }
 
-  async createProject(name) {
+  async createProject() {
+    const name = prompt('Название проекта', 'Сайт');
     if (!name) return;
     this.project = {
       id: null,
@@ -653,8 +605,8 @@ class Builder {
     this.startAutosave();
   }
 
-  async loadProject(id) {
-    id = parseInt(id);
+  async loadProject() {
+    const id = parseInt(prompt('ID проекта', this.project.id || '1'));
     if (!id) return;
     try {
       const pr = await api('GET', `/projects/${id}`);
@@ -670,12 +622,13 @@ class Builder {
       this.switchPage(this.pages[0]);
       this.applyConfig();
       this.startAutosave();
-      } catch {}
+      } catch { alert('Нет проекта'); }
   }
 
-  async saveProject(name) {
-    if (name) this.project.name = name.trim() || 'Site';
-    if (!this.project.name) this.project.name = 'Site';
+  async saveProject() {
+    if (!this.project.name) {
+      this.project.name = prompt('Название проекта', 'Сайт') || 'Site';
+    }
     this.project.pages[this.current].html = this.canvas.innerHTML;
     if (!this.project.id) {
       const res = await api('POST', '/projects/', {
@@ -692,30 +645,17 @@ class Builder {
     localStorage.removeItem(AUTO_SAVE_KEY);
     this.stopAutosave();
     this.startAutosave();
-    if (this.saveStatus) this.saveStatus.textContent = 'Сохранено';
+    alert('Сохранено');
   }
 
   async exportProject() {
-    if (!this.project.id) return;
-    if (this.exportLink)
-      this.exportLink.href = `/projects/${this.project.id}/export`;
-    this.openDialog('dlgExport');
-  }
-
-  async showLoadDialog() {
+    if (!this.project.id) { alert('Нет проекта'); return; }
     try {
-      const list = await api('GET', '/projects/');
-      if (this.loadList) {
-        this.loadList.innerHTML = '';
-        for (const pr of list) {
-          const o = document.createElement('option');
-          o.value = pr.id;
-          o.textContent = `${pr.id} - ${pr.name}`;
-          this.loadList.appendChild(o);
-        }
-      }
-      this.openDialog('dlgLoad');
-    } catch {}
+      const blob = await (await fetch(`/projects/${this.project.id}/export`)).blob();
+      const u = URL.createObjectURL(blob);
+      Object.assign(document.createElement('a'), { href: u, download: 'site.zip' }).click();
+      URL.revokeObjectURL(u);
+    } catch { alert('Ошибка экспорта'); }
   }
 
   async importProject() {
@@ -736,6 +676,7 @@ class Builder {
         }
         this.project = { id: null, name: file.name.replace(/\.zip$/i, ''), pages, config: { bgColor: '#fafafa', grid: 20, bgImage: '' } };
       } else {
+        alert('Неизвестный формат');
         return;
       }
       if (!this.project.config) this.project.config = { bgColor: '#fafafa', grid: 20, bgImage: '' };
@@ -745,6 +686,7 @@ class Builder {
       this.applyConfig();
       this.setupDraggables();
     } catch {
+      alert('Ошибка импорта');
     } finally {
       this.fileImport.value = '';
       this.startAutosave();
@@ -832,19 +774,6 @@ class Builder {
   toggleTheme() {
     const next = this.theme === 'dark' ? 'light' : 'dark';
     this.applyTheme(next);
-  }
-
-  openDialog(id) {
-    const dlg = document.getElementById(id);
-    if (!dlg || !this.modalOverlay) return;
-    this.modalOverlay.classList.add('open');
-    dlg.classList.add('open');
-  }
-
-  closeDialog(id) {
-    const dlg = document.getElementById(id);
-    if (dlg) dlg.classList.remove('open');
-    if (this.modalOverlay) this.modalOverlay.classList.remove('open');
   }
 
  /* ───────────────────────── drawGrid ───────────────────────── */
