@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 from .database import Base
 
@@ -12,9 +12,12 @@ class Project(Base):
 
 class ProjectPage(Base):
     __tablename__ = 'project_pages'
+    __table_args__ = (
+        UniqueConstraint('project_id', 'name', name='uix_project_page_name'),
+    )
     id         = Column(Integer, primary_key=True, index=True)
     project_id = Column(Integer, ForeignKey('projects.id', ondelete='CASCADE'))
-    name       = Column(String)          # «about», «contacts» …
+    name       = Column(String, unique=True)          # «about», «contacts» …
     title      = Column(String)          # человеко-читаемый заголовок
     data       = Column(Text)            # JSON страницы (projectData)
 
