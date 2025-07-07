@@ -3,6 +3,7 @@ import zipfile
 import tempfile
 import json
 import base64
+import re
 from types import SimpleNamespace
 from jinja2 import Template
 from sqlalchemy.orm import Session
@@ -103,6 +104,8 @@ def build_zip(project: Project, db: Session) -> str:
             if not src or not src.startswith("data:"):
                 continue
             name = asset.get("name") or f"asset{idx}"
+            # допускаем только буквы, цифры, подчёркивание, дефис и точку
+            name = re.sub(r"[^A-Za-z0-9_.-]", "_", name)
             try:
                 header, b64 = src.split(",", 1)
                 data = base64.b64decode(b64)

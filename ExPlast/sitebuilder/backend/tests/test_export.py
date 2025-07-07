@@ -55,3 +55,20 @@ def test_export_file_removed(monkeypatch, tmp_path):
     assert resp.status_code == 200
     resp.close()
     assert not path.exists()
+
+
+def test_export_asset_name_filtered():
+    data = {
+        "project": {
+            "assets": [
+                {"name": "bad name@.png", "src": "data:image/png;base64,YWJj"}
+            ]
+        },
+        "pages": {"index": {"html": "", "css": ""}}
+    }
+    pid = client.post("/projects/", json={"name": "Demo", "data": data}).json()["id"]
+    resp = client.get(f"/projects/{pid}/export")
+    assert resp.status_code == 200
+    with zipfile.ZipFile(io.BytesIO(resp.content)) as zf:
+        assert "assets/bad_name_.png" in zf.namelist()
+        assert zf.read("assets/bad_name_.png") == b"abc"
