@@ -60,30 +60,39 @@ def test_export_file_removed(monkeypatch, tmp_path):
     assert not path.exists()
 
 
-def test_export_sanitize_names():
-    img = base64.b64encode(b"img").decode()
+def test_export_sanitize_and_filtered_names():
+    img = base64.b64encode(b"abc").decode()
     data = {
-        "pages": {
-            "bad/../name": {"html": "hi", "css": ""},
-        },
         "project": {
             "assets": [
-                {"src": f"data:text/plain;base64,{img}", "name": "pic/../evil.png"}
+                {"name": "bad name@.png", "src": f"data:image/png;base64,{img}"},
+                {"name": "pic/../evil.png", "src": f"data:text/plain;base64,{img}"}
             ]
         },
+        "pages": {
+            "bad/../name": {"html": "hi", "css": ""},
+        }
     }
     pid = client.post("/projects/", json={"name": "X", "data": data}).json()["id"]
-
     resp = client.get(f"/projects/{pid}/export")
     assert resp.status_code == 200
 
     with zipfile.ZipFile(io.BytesIO(resp.content)) as zf:
         names = zf.namelist()
-        assert "bad____name.html" in names
+        # Проверяем, что оба ассета отфильтрованы
+        assert "assets/bad_name_.png" in names
         assert "assets/pic____evil_png" in names
+        # Проверяем страницу
+        assert "bad____name.html" in names
+
+        # Проверка содержимого файла
+        assert zf.read("assets/bad_name_.png") == b"abc"
+
+        # Проверка отсутствия опасных символов
         for name in names:
             assert ".." not in name
             if name.startswith("assets/"):
                 assert "/" not in name[len("assets/") :]
             else:
                 assert "/" not in name
+

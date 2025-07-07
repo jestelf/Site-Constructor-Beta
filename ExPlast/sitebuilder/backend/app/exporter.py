@@ -117,7 +117,8 @@ def build_zip(project: Project, db: Session) -> str:
             if not src or not src.startswith("data:"):
                 continue
             name = asset.get("name") or f"asset{idx}"
-            aname = _safe_name(name)
+            # допускаем только буквы, цифры, подчёркивание, дефис и точку
+            name = re.sub(r"[^A-Za-z0-9_.-]", "_", name)
             if not aname:
                 continue
             try:
