@@ -1,4 +1,4 @@
-from pathlib import Path
+from importlib import resources
 import os
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.staticfiles import StaticFiles
@@ -103,19 +103,20 @@ def export_zip(pid: int, db: Session = Depends(get_db)):
 #             ├─ style/   – стили
 #             ├─ src/     – js-модули
 #             └─ ExPlast/sitebuilder/backend/
-BASE_DIR = Path(__file__).resolve().parents[4]
+BASE_DIR = resources.files("sitebuilder").parent.parent
 FRONT_DIR = BASE_DIR / "public"
 STYLE_DIR = BASE_DIR / "style"
 SRC_DIR = BASE_DIR / "src"
 # если путь не найден → явная ошибка при старте
-if not FRONT_DIR.exists():
+if not FRONT_DIR.is_dir():
     raise RuntimeError(f"frontend directory not found: {FRONT_DIR}")
-if not (FRONT_DIR / "index.html").exists():
-    raise RuntimeError(f"index.html not found in frontend directory: {FRONT_DIR}")
-if not STYLE_DIR.exists():
-    raise RuntimeError(f"style directory not found: {STYLE_DIR}")
-if not SRC_DIR.exists():
-    raise RuntimeError(f"src directory not found: {SRC_DIR}")
+if not (FRONT_DIR / "index.html").is_file():
+    raise RuntimeError(
+        f"index.html not found in frontend directory: {FRONT_DIR}"
+    )
+for path in (STYLE_DIR, SRC_DIR):
+    if not path.is_dir():
+        raise RuntimeError(f"{path.name} directory not found: {path}")
 
 # отдаём всё содержимое папки,
 # html=True → запрос к '/' вернёт index.html
