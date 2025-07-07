@@ -243,3 +243,34 @@
     repeating-linear-gradient(to bottom,
         var(--grid-color) 0 1px, transparent 1px var(--grid-step));
   background-size: var(--grid-step) var(--grid-step);
+}
+
+/* ───── модальные окна ───── */
+#modalOverlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.6);
+  z-index:10000;
+  display:none;
+}
+#modalOverlay.open{display:block;}
+.modal{
+  position:fixed;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%) scale(.95);
+  background:var(--color-panel);
+  color:var(--color-text);
+  padding:0.75rem;
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  z-index:10001;
+  display:none;
+  transition:transform .2s, opacity .2s;
+}
+.modal.open{
+  display:block;
+  transform:translate(-50%,-50%) scale(1);
+}
+.modal-buttons{text-align:right;margin-top:0.5rem;}
+.modal-buttons button{margin-left:0.5rem;}

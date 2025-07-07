@@ -37,6 +37,60 @@
     </div>
   </div>
 
+  <div id="modalOverlay"></div>
+
+  <div id="dlgCreate" class="modal">
+    <form id="formCreate">
+      <label>Имя проекта: <input type="text" id="createName"></label>
+      <div class="modal-buttons">
+        <button type="submit">Создать</button>
+        <button type="button" data-close="dlgCreate">Отмена</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="dlgLoad" class="modal">
+    <form id="formLoad">
+      <label>Проект:
+        <select id="loadList"></select>
+      </label>
+      <div class="modal-buttons">
+        <button type="submit">Загрузить</button>
+        <button type="button" data-close="dlgLoad">Отмена</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="dlgSave" class="modal">
+    <form id="formSave">
+      <div> ID: <span id="saveId">—</span> </div>
+      <label>Имя: <input type="text" id="saveName"></label>
+      <div class="modal-buttons">
+        <button type="submit">Сохранить</button>
+        <button type="button" data-close="dlgSave">Отмена</button>
+      </div>
+      <div id="saveStatus"></div>
+    </form>
+  </div>
+
+  <div id="dlgImport" class="modal">
+    <form id="formImport">
+      <input type="file" id="fileImport" accept=".json,.zip">
+      <div class="modal-buttons">
+        <button type="submit">Импорт</button>
+        <button type="button" data-close="dlgImport">Отмена</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="dlgExport" class="modal">
+    <p>Экспорт готов.</p>
+    <a id="exportLink" href="#" download>Скачать</a>
+    <div class="modal-buttons">
+      <button type="button" data-close="dlgExport">Закрыть</button>
+    </div>
+  </div>
+
   <div id="configPanel">
     <label>Название: <input type="text" id="cfgName"></label>
     <label>Цвет фона: <input type="color" id="cfgBg"></label>
@@ -131,7 +185,6 @@
     <label id="propTargetRow" style="display:none;"><input type="checkbox" id="propTarget" style="margin-right:4px;">Открывать в новой вкладке</label>
   </div>
 
-  <input type="file" id="fileImport" accept=".json,.zip" style="display:none">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script type="module" src="/src/index.js"></script>
 </body>
